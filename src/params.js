@@ -2,7 +2,34 @@ const path = require('path');
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-let max = 5;
+let [, , ...cliParams] = process.argv;
+
+function getParam(param, value = false) {
+  const p = cliParams.find(p => p.includes(param));
+
+  cliParams = cliParams.filter(p => !p.includes(param));
+
+  if (value) return p ? p.split('=')[1] : false;
+
+  return Boolean(p);
+}
+
+
+if (getParam('--help')) printHelp();
+
+
+const ignoreDev = getParam('--ignore-dev');
+
+const ignoreYarnLock = getParam('--ignore-yarn-lock');
+
+const defaultPackageJson = getParam('--default-package-json', true);
+
+const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
+
+const copyOnlyFiles = getParam('--copy-only-files');
+
+
+let max = getParam('--max-depth', true) || 5;
 const getWorkspacesRoot = dir => {
   const pkg = path.join(dir, 'package.json');
   let found = false;
@@ -22,32 +49,6 @@ const getWorkspacesRoot = dir => {
 const rootDir = getWorkspacesRoot(path.resolve());
 
 const allWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
-
-let [, , ...cliParams] = process.argv;
-
-function getParam(param, value = false) {
-  const p = cliParams.find(p => p.includes(param));
-
-  cliParams = cliParams.filter(p => !p.includes(param));
-
-  if (value) return p ? p.split('=')[1] : false;
-
-  return Boolean(p);
-}
-
-const help = getParam('--help');
-
-if (help) printHelp();
-
-const ignoreDev = getParam('--ignore-dev');
-
-const ignoreYarnLock = getParam('--ignore-yarn-lock');
-
-const defaultPackageJson = getParam('--default-package-json', true);
-
-const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
-
-const copyOnlyFiles = getParam('--copy-only-files');
 
 const workspaceName = (function getWorkspaceName() {
   const [targetWorkspaceName] = cliParams;
@@ -85,6 +86,7 @@ function printHelp() {
   [--default-workspaces-folder={value}]   different folder to copy related workspace inside the root workspace.
   [--copy-files-only]                     only copy files from the package.json file field
   [--ignore-copy-pattern={value}]         pattern that mach the pattern will be ignore in copy
+  [--max-depth]                           by default we search recursively project-root 5 folder
 `);
 
   process.exit(0);
