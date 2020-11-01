@@ -8,6 +8,16 @@
   },
   "files": ["src"],
   "license": "MIT",
+  "keywords": [
+    "yarn",
+    "yarn isolate",
+    "yarn focus",
+    "yarn workspace",
+    "yarn workspaces",
+    "yarn workspaces isolate",
+    "yarn workspace isolate",
+    "lerna isolate"
+  ],
   "author": "Nir winkler <madvinking@gmail.com>",
   "repository": {
     "type": "git",
