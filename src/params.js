@@ -1,7 +1,8 @@
-import path from 'path';
-import { execSync } from 'child_process';
-import fs from 'fs';
+const path = require('path');
+const { execSync } = require('child_process');
+const fs = require('fs');
 
+let max = 5;
 const getWorkspacesRoot = dir => {
   const pkg = path.join(dir, 'package.json');
   let found = false;
@@ -10,12 +11,17 @@ const getWorkspacesRoot = dir => {
     if (workspaces) found = true;
   }
   if (found) return dir;
+  if (max === 0) {
+    console.log('no workspace project found')
+    process.exit(1);
+  }
+  max--;
   return getWorkspacesRoot(path.join(dir, '../'));
 };
 
-export const rootDir = getWorkspacesRoot(path.resolve());
+const rootDir = getWorkspacesRoot(path.resolve());
 
-export const allWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
+const allWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
 
 let [, , ...cliParams] = process.argv;
 
@@ -33,17 +39,17 @@ const help = getParam('--help');
 
 if (help) printHelp();
 
-export const ignoreDev = getParam('--ignore-dev');
+const ignoreDev = getParam('--ignore-dev');
 
-export const ignoreYarnLock = getParam('--ignore-yarn-lock');
+const ignoreYarnLock = getParam('--ignore-yarn-lock');
 
-export const defaultPackageJson = getParam('--default-package-json', true);
+const defaultPackageJson = getParam('--default-package-json', true);
 
-export const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
+const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
 
-export const copyOnlyFiles = getParam('--copy-only-files');
+const copyOnlyFiles = getParam('--copy-only-files');
 
-export const workspaceName = (function getWorkspaceName() {
+const workspaceName = (function getWorkspaceName() {
   const [targetWorkspaceName] = cliParams;
 
   if (!targetWorkspaceName) {
@@ -82,4 +88,16 @@ function printHelp() {
 `);
 
   process.exit(0);
+}
+
+
+module.exports = {
+  rootDir,
+  workspaceName,
+  allWorkspaces,
+  ignoreDev,
+  ignoreYarnLock,
+  defaultPackageJson,
+  defaultWorkspacesFolder,
+  copyOnlyFiles,
 }

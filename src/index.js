@@ -1,9 +1,9 @@
-import path from 'path';
-import fs from 'fs';
-import fse from 'fs-extra';
-import * as lockfile from '@yarnpkg/lockfile';
+const path  = require('path');
+const fs  = require('fs');
+const fse  = require('fs-extra');
+const  lockfile = require('@yarnpkg/lockfile');
 
-import {
+const {
   rootDir,
   workspaceName,
   allWorkspaces,
@@ -12,7 +12,7 @@ import {
   defaultPackageJson,
   defaultWorkspacesFolder,
   // copyOnlyFiles,
-} from './params.js';
+}  = require('./params.js');
 
 function getAllRelatedWorkspaces() {
   const workspacesToCopy = [];

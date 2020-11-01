@@ -1,4 +1,4 @@
-const prettierRules = require('./.prettierrc.cjs');
+const prettierRules = require('./.prettierrc.js');
 
 module.exports = {
   parser: '@typescript-eslint/parser',
