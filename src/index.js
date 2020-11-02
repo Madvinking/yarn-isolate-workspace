@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const path  = require('path');
-const fs  = require('fs');
-const fse  = require('fs-extra');
-const  lockfile = require('@yarnpkg/lockfile');
+const path = require('path');
+const fs = require('fs');
+const fse = require('fs-extra');
+const lockfile = require('@yarnpkg/lockfile');
 
 const {
   rootDir,
@@ -14,7 +14,7 @@ const {
   defaultPackageJson,
   defaultWorkspacesFolder,
   // copyOnlyFiles,
-}  = require('./params.js');
+} = require('./params.js');
 
 function getAllRelatedWorkspaces() {
   const workspacesToCopy = [];
@@ -56,18 +56,20 @@ function copyRelatedWorkspacesToDest(workspaces, destinationFolder) {
     .filter(name => name !== workspaceName)
     .forEach(name => {
       allWorkspaces[name].newLocation = path.join(destinationFolder, name);
+      allWorkspaces[name].relativeTo = path.join(allWorkspaces[workspaceName].location, 'node_modules', name);
       //TODO ignore pattern list right now ignore node_modules
       fse.copySync(allWorkspaces[name].location, allWorkspaces[name].newLocation, {
         filter: src => !src.includes('node_modules'),
       });
     });
   allWorkspaces[workspaceName].newLocation = allWorkspaces[workspaceName].location;
+  allWorkspaces[workspaceName].relativeTo = allWorkspaces[workspaceName].location;
 }
 
 const changeLocation = (list, relativeTo) => {
   return Object.entries(list).reduce((acc, [pkgName, version]) => {
     if (allWorkspaces[pkgName]) {
-      acc[pkgName] = `file:${path.relative(relativeTo, allWorkspaces[pkgName].newLocation)}`;
+      acc[pkgName] = `file:${path.relative(relativeTo, allWorkspaces[pkgName].relativeTo)}`;
     } else {
       acc[pkgName] = version;
     }
@@ -80,10 +82,10 @@ function resolvePackageJsonWithNewLocations(workspaces) {
   workspaces.forEach(name => {
     const { dependencies, devDependencies } = allWorkspaces[name].pkgJson;
 
-    if (dependencies) allWorkspaces[name].pkgJson.dependencies = changeLocation(dependencies, allWorkspaces[name].newLocation);
+    if (dependencies) allWorkspaces[name].pkgJson.dependencies = changeLocation(dependencies, allWorkspaces[name].relativeTo);
 
     if (!ignoreDev && devDependencies)
-      allWorkspaces[name].pkgJson.devDependencies = changeLocation(devDependencies, allWorkspaces[name].newLocation);
+      allWorkspaces[name].pkgJson.devDependencies = changeLocation(devDependencies, allWorkspaces[name].relativeTo);
     fse.writeFileSync(
       path.join(
         allWorkspaces[name].newLocation,
