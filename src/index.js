@@ -103,7 +103,7 @@ function createYarnLock(dependenciesList) {
     return;
   }
 
-  let { object: oldFile } = lockfile.parse(fs.readFileSync('yarn.lock', 'utf8'));
+  let { object: oldFile } = lockfile.parse(fs.readFileSync(yarnLockPath, 'utf8'));
 
   let newFile = Object.fromEntries(Object.entries(oldFile).filter(([name]) => dependenciesList.includes(name)));
 
