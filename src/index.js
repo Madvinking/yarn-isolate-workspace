@@ -7,6 +7,8 @@ const lockfile = require('@yarnpkg/lockfile');
 
 const {
   rootDir,
+  ignoreYarnrc,
+  asMonorepo,
   workspaceName,
   allWorkspaces,
   ignoreDev,
@@ -51,19 +53,24 @@ function createFolderForRelatedWorkspaces(workspace) {
 }
 
 function copyRelatedWorkspacesToDest(workspaces, destinationFolder) {
+  const mainWorkspace = allWorkspaces[workspaceName];
+  mainWorkspace.relativeTo = mainWorkspace.newLocation = mainWorkspace.location;
   //TODO ability to copy only files from the package.json files attribute
   workspaces
-    .filter(name => name !== workspaceName)
     .forEach(name => {
-      allWorkspaces[name].newLocation = path.join(destinationFolder, name);
-      allWorkspaces[name].relativeTo = path.join(allWorkspaces[workspaceName].location, 'node_modules', name);
+      const subWorkspace = allWorkspaces[name];
+
+      if (asMonorepo) {
+        subWorkspace.newLocation = path.join(destinationFolder, path.relative(rootDir, subWorkspace.location));
+      } else {
+        subWorkspace.newLocation = path.join(destinationFolder, name);
+        subWorkspace.relativeTo = path.join(mainWorkspace.location, 'node_modules', name);
+      }
       //TODO ignore pattern list right now ignore node_modules
-      fse.copySync(allWorkspaces[name].location, allWorkspaces[name].newLocation, {
+      fse.copySync(subWorkspace.location, subWorkspace.newLocation, {
         filter: src => !src.includes('node_modules'),
       });
     });
-  allWorkspaces[workspaceName].newLocation = allWorkspaces[workspaceName].location;
-  allWorkspaces[workspaceName].relativeTo = allWorkspaces[workspaceName].location;
 }
 
 const changeLocation = (list, relativeTo) => {
@@ -96,6 +103,28 @@ function resolvePackageJsonWithNewLocations(workspaces) {
   });
 }
 
+function createMonoRepo(relatedWorkspaces) {
+  const currentWorkspace = allWorkspaces[workspaceName];
+
+  currentWorkspace.pkgJson.workspaces = relatedWorkspaces.map(name => path.relative(currentWorkspace.newLocation, allWorkspaces[name].newLocation))
+  fse.writeFileSync(
+    path.join(
+      currentWorkspace.newLocation,
+      defaultPackageJson ? defaultPackageJson : 'package.json',
+    ),
+    JSON.stringify(currentWorkspace.pkgJson, null, 2),
+  )
+
+  if (ignoreYarnrc) return;
+
+  const yarnrcFile = path.join(rootDir, '.yarnrc');
+  if (!fs.existsSync(yarnrcFile)) {
+    console.warn('no .yarnrc file in root-project');
+    return;
+  }
+  fse.copySync(yarnrcFile, path.join(currentWorkspace.location, '.yarnrc'));
+}
+
 function createYarnLock(dependenciesList) {
   const yarnLockPath = path.join(rootDir, 'yarn.lock');
   if (!fs.existsSync(yarnLockPath)) {
@@ -111,13 +140,19 @@ function createYarnLock(dependenciesList) {
 }
 
 async function init() {
+
   const { workspacesToCopy, collectedDependenciesToInstall } = getAllRelatedWorkspaces();
 
   const destWorkspacesDir = createFolderForRelatedWorkspaces(workspaceName, defaultWorkspacesFolder);
 
   copyRelatedWorkspacesToDest(workspacesToCopy, destWorkspacesDir);
 
-  resolvePackageJsonWithNewLocations([...workspacesToCopy, workspaceName]);
+
+  if (asMonorepo) {
+    createMonoRepo(workspacesToCopy);
+  } else {
+    resolvePackageJsonWithNewLocations([...workspacesToCopy, workspaceName]);
+  }
 
   if (!ignoreYarnLock) createYarnLock(collectedDependenciesToInstall);
 }

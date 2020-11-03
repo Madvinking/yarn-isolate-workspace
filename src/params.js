@@ -22,7 +22,11 @@ const ignoreDev = getParam('--ignore-dev');
 
 const ignoreYarnLock = getParam('--ignore-yarn-lock');
 
+const ignoreYarnrc = getParam('--ignore-yarnrc');
+
 const defaultPackageJson = getParam('--default-package-json', true);
+
+const asMonorepo = getParam('--monorepo-mode');
 
 const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
 
@@ -94,6 +98,8 @@ function printHelp() {
 
 
 module.exports = {
+  asMonorepo,
+  ignoreYarnrc,
   rootDir,
   workspaceName,
   allWorkspaces,
