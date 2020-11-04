@@ -44,19 +44,29 @@ OR
 npm -i yarn-isolate-workspace
 yarn-isolate-workspace packages/project-a
 ```
-by passing the folder or the name of the workspace
-it will recursively copy all of the related workspaces to your desire location in the workspace dir
+passing folder or name of the workspace
+will recursively copy all of the related workspaces to your desire location in the workspace dir
+
+in original mode
 it will change all workspaces package.json to point to all other workspaces using an relative path.
+
+in a monorepo-mode
+it will make the selected workspace the root of the workspace project
 
 ## Cli params
 ```
   #### yarn-isolate [options] [workspace name to isolate]
-  [--help]                                will print this message
-  [--ignore-dev]                          will ignore all dev dependencies from root nad related workspaces.
-  [--ignore-yarn-lock]                    will not generate yarn.lock on root workspace folder.
-  [--default-package-json={value}]        different name to create root workspace package.json.
-  [--default-workspaces-folder={value}]   different folder to copy related workspace inside the root workspace.
-  [--copy-files-only]                     only copy files from the package.json file field
-  [--ignore-copy-pattern={value}]         pattern that mach the pattern will be ignore in copy
-  [--max-depth]                           by default we search recursively project-root 5 folder
+  * [--copy-files-only]                      include only files listed on the file key in the package.json
+  * [--ignore-copy-pattern={value}]          pattern that mach the pattern will be ignore in copy
+    [--ignore-copy-dev]                      ignore DEV dependencies on copying workspaces.
+    [--ignore-dev-package-json]              run --ignore-copy-dev and filter dev-dependencies from package.json.
+    [--ignore-dev-package-json-name={value}] create a package.json file filter dev-dependencies in different name
+    [--package-json-name={value}]            create a package.json file in a different name
+    [--default-workspaces-folder={value}]    different folder to copy related workspace inside the root workspace.
+    [--ignore-yarnrc]                        in monorepo-mode yarnrc will be created, can ignore it.
+    [--ignore-yarn-lock]                     not generate yarn.lock on root workspace folder.
+    [--monorepo-mode]                        make the current workspace a mono-repo project.
+    [--max-depth]                            by default we search recursively project-root 5 folder
+
+  * in progress
 ```
