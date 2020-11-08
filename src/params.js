@@ -30,6 +30,8 @@ const ignoreYarnrc = getParam('--ignore-yarnrc');
 
 const monorepoMode = getParam('--monorepo-mode');
 
+const srcLessFolders = getParam('--src-less-folders');
+
 const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
 
 const copyOnlyFiles = getParam('--copy-only-files');
@@ -92,6 +94,7 @@ function printHelp() {
     [--ignore-dev-package-json]              run --ignore-copy-dev and filter dev-dependencies from package.json.
     [--ignore-dev-package-json-name={value}] create a package.json file filter dev-dependencies in different name
     [--package-json-name={value}]            create a package.json file in a different name
+    [--src-less-folders]                     create mirror copy folder contains only packages.json files
     [--default-workspaces-folder={value}]    different folder to copy related workspace inside the root workspace.
     [--ignore-yarnrc]                        in monorepo-mode yarnrc will be created, can ignore it.
     [--ignore-yarn-lock]                     not generate yarn.lock on root workspace folder.
@@ -111,6 +114,7 @@ module.exports = {
   ignoreDevPackageJsonName,
   packageJsonName,
   monorepoMode,
+  srcLessFolders,
   ignoreYarnrc,
   rootDir,
   workspaceName,

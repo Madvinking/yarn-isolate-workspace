@@ -10,6 +10,7 @@
   "license": "MIT",
   "keywords": [
     "yarn",
+    "workspace",
     "yarn isolate",
     "yarn focus",
     "yarn workspace",
