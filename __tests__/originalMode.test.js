@@ -74,6 +74,20 @@ describe('original mode', () => {
     assertDeps(originalMode.workspace1, originalMode.workspace1.path );
   });
 
+  test('--default-workspaces-folder - create the folder name instead of override node_modules', async () => {
+    runWithParam('--default-workspaces-folder=_workspaces_ --package-json-name=isolate.json');
+
+    const workspaces = fse.readdirSync(`${workspacePath}/_workspaces_/`);
+    expect(workspaces).toEqual(originalMode.workspaceList);
+
+    const pkgJson = JSON.parse(fse.readFileSync(workspacePathPkgJsonPath));
+    expect(pkgJson).toEqual(originalPkgJSON);
+
+
+    assertDeps(originalMode.mainWorkspaceRelativeToWorkspaceFolder, `${workspacePath}/isolate.json`);
+    assertDeps(originalMode.workspace1, originalMode.workspace1.pathWorkspace );
+  });
+
   test('--src-less-folders - create 2 folders for only package.json', async () => {
     runWithParam('--src-less-folders');
 

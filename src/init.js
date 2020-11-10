@@ -86,7 +86,7 @@ function init(params) {
           subWorkspace.newLocation = path.join(destinationFolder, path.relative(rootDir, subWorkspace.location));
         } else {
           subWorkspace.newLocation = path.join(destinationFolder, name);
-          subWorkspace.relativeTo = path.join(mainWorkspace.location, 'node_modules', name);
+          subWorkspace.relativeTo = path.join(mainWorkspace.location, defaultWorkspacesFolder ?defaultWorkspacesFolder : 'node_modules', name);
         }
         //TODO ignore pattern list right now ignore node_modules
         fse.copySync(subWorkspace.location, subWorkspace.newLocation, {

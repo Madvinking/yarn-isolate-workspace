@@ -16,7 +16,7 @@ const cleanAfter = () =>  {
     workspacePathPkgJsonPath,
     JSON.stringify(originalPkgJSON, null, 2),
   );
-  execSync(`cd ${workspacePath} && rm -rf node_modules isolate.json isolate-prod.json .yarnrc yarn.lock node_modules_src_less node_modules_src_less_no_dev`);
+  execSync(`cd ${workspacePath} && rm -rf node_modules isolate.json isolate-prod.json .yarnrc yarn.lock node_modules_src_less node_modules_src_less_no_dev _workspaces_ _workspaces__src_less_no_dev _workspaces__src_less`);
 }
 
 const originalMode = {
@@ -30,6 +30,20 @@ const originalMode = {
     'workspace-3',
     'workspace4'
   ],
+  mainWorkspaceRelativeToWorkspaceFolder: {
+    dependencies: {
+      'workspace-1': 'file:_workspaces_/workspace-1',
+      'workspace-2': 'file:_workspaces_/workspace-2',
+      'in-root-dep-1': '1',
+      'in-root-dep-2': '2'
+    },
+    devDependencies: {
+      'workspace-11': 'file:_workspaces_/workspace-11',
+      'workspace-12': 'file:_workspaces_/workspace-12',
+      'in-root-dev-dep-1': '1',
+      'in-root-dev-dep-2': '1'
+    },
+  },
   mainWorkspace: {
     path: workspacePathPkgJsonPath,
     dependencies: {
@@ -47,6 +61,7 @@ const originalMode = {
   },
   workspace1: {
    path: `${workspacePath}/node_modules/workspace-1/package.json`,
+   pathWorkspace: `${workspacePath}/_workspaces_/workspace-1/package.json`,
    dependencies: {
     'workspace-2': 'file:../workspace-2',
     'workspace-3': 'file:../workspace-3',
