@@ -36,6 +36,8 @@ const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) ||
 
 const copyOnlyFiles = getParam('--copy-only-files');
 
+const rootWorkspace = getParam('--root-workspace', true) || path.resolve();
+
 
 let max = getParam('--max-depth', true) || 5;
 const getWorkspacesRoot = dir => {
@@ -54,7 +56,7 @@ const getWorkspacesRoot = dir => {
   return getWorkspacesRoot(path.join(dir, '../'));
 };
 
-const rootDir = getWorkspacesRoot(path.resolve());
+const rootDir = getWorkspacesRoot(rootWorkspace);
 
 const allWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
 
@@ -80,6 +82,13 @@ for (let key in allWorkspaces) {
   allWorkspaces[key].location = path.join(rootDir, allWorkspaces[key].location);
   allWorkspaces[key].pkgJsonLocation = path.join(allWorkspaces[key].location, 'package.json');
   allWorkspaces[key].pkgJson = JSON.parse(fs.readFileSync(allWorkspaces[key].pkgJsonLocation));
+  if (allWorkspaces[key].pkgJson.dependencies &&
+    allWorkspaces[key].pkgJson.dependencies[workspaceName]
+    ) delete allWorkspaces[key].pkgJson.dependencies[workspaceName]
+
+  if (allWorkspaces[key].pkgJson.devDependencies &&
+    allWorkspaces[key].pkgJson.devDependencies[workspaceName]
+  ) delete allWorkspaces[key].pkgJson.devDependencies[workspaceName]
 }
 
 function printHelp() {
@@ -100,6 +109,7 @@ function printHelp() {
     [--ignore-yarn-lock]                     not generate yarn.lock on root workspace folder.
     [--monorepo-mode]                        make the current workspace a mono-repo project.
     [--max-depth]                            by default we search recursively project-root 5 folder
+    [--root-workspace={value}]               absolute path to project-root
 
   * in progress
 `);

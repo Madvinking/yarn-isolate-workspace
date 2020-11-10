@@ -5,23 +5,6 @@ when working in mono-repo environment u have could have a workspaces that depend
 in order to prepare such a workspace to deployment such as copy all related files to docker image
 u have to isolate the workspace meaning copy all the related workspaces to the chooses workspace.
 
-## for example
-
-```
-├── lerna.json
-├── node_modules
-├── package.json
-├── yarn-lock.json
-└── packages
-    ├── project-a (can be deploy)
-    ├── util-a (private)
-    ├── util-b
-    ├── util-c
-```
-
-**Also**, let's say that app depends on util-a and util-b.
-**And**, util-b depends on utils-c.
-
 ### Problems
 1. in order to deploy project-a u need all related utils and also all their related utils
 2. u need to generate a yarn.lock file that include only project-a and the relevant utils
@@ -71,3 +54,6 @@ it will make the selected workspace the root of the workspace project
 
   * in progress
 ```
+
+
+## use cases:
