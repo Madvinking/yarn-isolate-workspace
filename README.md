@@ -56,4 +56,5 @@ it will make the selected workspace the root of the workspace project
 ```
 
 
-## use cases:
+## known issues:
+ - when use --src-less-folders not working in original mode only with --monorepo-mode files, in srsless folders the folders are not being set relative

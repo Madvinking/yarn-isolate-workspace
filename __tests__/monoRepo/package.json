@@ -2,9 +2,7 @@
   "name": "mono-repo",
   "version": "1.1.1",
   "private": true,
-  "scripts": {
-      "isolate": "yarn-isolate-workspace"
-  },
+
   "workspaces": [
     "packages/*"
   ]
