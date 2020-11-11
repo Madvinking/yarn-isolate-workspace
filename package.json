@@ -1,11 +1,10 @@
 {
   "name": "yarn-isolate-workspace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "will isolate one yarn workspace",
   "main": "src/index.js",
   "bin": {
-    "yarn-isolate-workspace": "src/index.js",
-    "yarn-isolate-workspace-mono": "src/v2/index.js"
+    "yarn-isolate-workspace": "src/index.js"
   },
   "files": ["src"],
   "license": "MIT",
