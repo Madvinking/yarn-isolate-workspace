@@ -4,7 +4,8 @@
   "description": "will isolate one yarn workspace",
   "main": "src/index.js",
   "bin": {
-    "yarn-isolate-workspace": "src/index.js"
+    "yarn-isolate-workspace": "src/index.js",
+    "yarn-isolate-workspace-mono": "src/v2/index.js"
   },
   "files": ["src"],
   "license": "MIT",

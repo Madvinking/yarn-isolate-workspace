@@ -1,4 +1,3 @@
-
 const { execSync } = require('child_process');
 const fse = require('fs-extra');
 const path = require('path');
@@ -16,7 +15,7 @@ const cleanAfter = () =>  {
     workspacePathPkgJsonPath,
     JSON.stringify(originalPkgJSON, null, 2),
   );
-  execSync(`cd ${workspacePath} && rm -rf node_modules isolate.json isolate-prod.json .yarnrc yarn.lock node_modules_src_less node_modules_src_less_no_dev _workspaces_ _workspaces__src_less_no_dev _workspaces__src_less`);
+  // execSync(`cd ${workspacePath} && rm -rf _isolated_ _isolated-other_`);
 }
 
 const originalMode = {
@@ -75,6 +74,10 @@ const originalMode = {
       'in-w1-dev-dep-2': '1'
     }
   }
+}
+
+const monMode = {
+
 }
 
 const assertDeps = (workspace, file, { dependencies = null, devDependencies = null } = {}) => {

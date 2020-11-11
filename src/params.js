@@ -16,28 +16,16 @@ function getParam(param, value = false) {
 
 if (getParam('--help')) printHelp();
 
-const ignoreDevPackageJsonName = getParam('--ignore-dev-package-json-name', true);
-
-const ignoreDevPackageJson = ignoreDevPackageJsonName ? false : getParam('--ignore-dev-package-json');
-
-const ignoreCopyDev = ignoreDevPackageJson ? true : getParam('--ignore-copy-dev');
-
-const packageJsonName = getParam('--package-json-name', true);
-
+const ignoreCopyDev = getParam('--ignore-copy-dev');
 const ignoreYarnLock = getParam('--ignore-yarn-lock');
-
 const ignoreYarnrc = getParam('--ignore-yarnrc');
-
-const monorepoMode = getParam('--monorepo-mode');
-
-const srcLessFolders = getParam('--src-less-folders');
-
-const defaultWorkspacesFolder = getParam('--default-workspaces-folder', true) || 'node_modules';
-
+const createSrcLessFolder = !getParam('--disable-src-less-folder');
+const createSrcLessProdFolder = !getParam('--disable-src-less-prod-folder');
+const createJsonFile = !getParam('--disable-json-file');
+const createJsonProdFile = !getParam('--disable-json-prod-file');
+const outPutFolder = getParam('--output-folder', true) || '_isolated_';
 const copyOnlyFiles = getParam('--copy-only-files');
-
 const rootWorkspace = getParam('--root-workspace', true) || path.resolve();
-
 
 let max = getParam('--max-depth', true) || 5;
 const getWorkspacesRoot = dir => {
@@ -91,25 +79,25 @@ for (let key in allWorkspaces) {
   ) delete allWorkspaces[key].pkgJson.devDependencies[workspaceName]
 }
 
+
 function printHelp() {
   console.log(`
   isolating workspace in yarn workspace project
   use:
   # yarn-isolate [options] [workspace name to isolate]
 
-  * [--copy-files-only]                      include only files listed on the file key in the package.json
-  * [--ignore-copy-pattern={value}]          pattern that mach the pattern will be ignore in copy
-    [--ignore-copy-dev]                      ignore DEV dependencies on copying workspaces.
-    [--ignore-dev-package-json]              run --ignore-copy-dev and filter dev-dependencies from package.json.
-    [--ignore-dev-package-json-name={value}] create a package.json file filter dev-dependencies in different name
-    [--package-json-name={value}]            create a package.json file in a different name
-    [--src-less-folders]                     create mirror copy folder contains only packages.json files
-    [--default-workspaces-folder={value}]    different folder to copy related workspace inside the root workspace.
-    [--ignore-yarnrc]                        in monorepo-mode yarnrc will be created, can ignore it.
-    [--ignore-yarn-lock]                     not generate yarn.lock on root workspace folder.
-    [--monorepo-mode]                        make the current workspace a mono-repo project.
-    [--max-depth]                            by default we search recursively project-root 5 folder
-    [--root-workspace={value}]               absolute path to project-root
+    [--ignore-copy-dev]               ignore DEV dependencies on copying workspaces.
+    [--ignore-yarnrc]                 in monorepo-mode yarnrc will be created, can ignore it.
+    [--ignore-yarn-lock]              not generate yarn.lock on root workspace folder.
+    [--disable-src-less-folder]       not create the src-less folders
+    [--disable-src-less-prod-folder]  not create the prod src-less folder
+    [--disable-json-file]             not create json file
+    [--disable-json-prod-file]        not create json prod json file
+    [--output-folder]                 folder to create all generated files (default to _isolated_)
+  * [--copy-files-only]               include only files listed on the file key in the package.json
+  * [--ignore-copy-pattern={value}]   pattern that mach the pattern will be ignore in copy
+    [--max-depth]                     by default we search recursively project-root 5 folder
+    [--workspace-folder={value}]      absolute path to project-root (default will look for the root)
 
   * in progress
 `);
@@ -119,17 +107,16 @@ function printHelp() {
 
 
 module.exports = {
-  ignoreCopyDev,
-  ignoreDevPackageJson,
-  ignoreDevPackageJsonName,
-  packageJsonName,
-  monorepoMode,
-  srcLessFolders,
-  ignoreYarnrc,
   rootDir,
+  ignoreCopyDev,
+  ignoreYarnrc,
   workspaceName,
   allWorkspaces,
   ignoreYarnLock,
-  defaultWorkspacesFolder,
-  copyOnlyFiles,
+  createSrcLessFolder,
+  createSrcLessProdFolder,
+  outPutFolder,
+  createJsonFile,
+  createJsonProdFile,
+  copyOnlyFiles
 }
