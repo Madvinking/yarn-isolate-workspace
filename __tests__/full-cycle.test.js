@@ -1,21 +1,189 @@
-
+const { execSync } = require('child_process');
 const fse = require('fs-extra');
+const path = require('path');
+const crypto = require('crypto');
+const md5sum = crypto.createHash('md5');
+const runWithParam = (params = '') => {
+  execSync(`node ${path.join(__dirname, '../src/index.js')} --root-workspace=${path.join(__dirname, 'monoRepo')} root-workspace ${params}`);
+}
 
-const { cleanAfter, originalMode, runWithParam, workspacePathPkgJsonPath, workspacePath, originalPkgJSON, assertDeps } = require('./utils');
+let workspaceFolder = path.join(__dirname, 'monoRepo/packages/root-workspace');
 
-describe('original mode', () => {
-  afterEach(cleanAfter);
-
-  test('no params should create all files', async () => {
-    runWithParam();
-
-    const nodeModules =  fse.readdirSync(originalMode.nodeModulesPath);
-
-    expect(nodeModules).toEqual(originalMode.workspaceList);
-
-    assertDeps(originalMode.mainWorkspace, originalMode.mainWorkspace.path);
-    assertDeps(originalMode.workspace1, originalMode.workspace1.path);
+describe('full cycle of isolated', () => {
+  afterEach(() => {
+    execSync(`cd ${workspaceFolder} && rm -rf _isolated_ _isolated-other_`)
   });
 
+  test('should create all files', async () => {
+    runWithParam();
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock'
+    ])
+    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`).toString()).toEqual('workspaces-experimental true')
+
+    const listOfAllWorkspaces = [
+      'workspace-1',
+      'workspace-2',
+      'workspace-4',
+      'workspace11',
+      'workspace12',
+      'workspace13',
+      'workspace3'
+    ]
+
+    expect(fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces/packages`)).toEqual(listOfAllWorkspaces);
+
+    expect(fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages`)).toEqual(listOfAllWorkspaces);
+
+    expect(fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less-prod/packages`)).toEqual([
+      'workspace-1',
+      'workspace-2',
+      'workspace-4',
+      'workspace3'
+    ]);
+
+    expect(fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces/packages/workspace-1`)).toEqual(['package.json', 'src.js']);
+
+    expect(fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1`)).toEqual(['package.json']);
+
+    expect(fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less-prod/packages/workspace-1`)).toEqual(['package.json']);
+
+    const mainPackageJSON = JSON.parse(fse.readFileSync(`${workspaceFolder}/package.json`).toString());
+    const generatedPackageJSON = JSON.parse(fse.readFileSync(`${workspaceFolder}/_isolated_/package.json`).toString());
+
+    expect(mainPackageJSON.dependencies).toEqual(generatedPackageJSON.dependencies)
+    expect(mainPackageJSON.devDependencies).toEqual(generatedPackageJSON.devDependencies)
+    expect(generatedPackageJSON.workspaces).toEqual([
+      'workspaces/packages/workspace-1',
+      'workspaces/packages/workspace-2',
+      'workspaces/packages/workspace3',
+      'workspaces/packages/workspace-4',
+      'workspaces/packages/workspace11',
+      'workspaces/packages/workspace12',
+      'workspaces/packages/workspace13'
+    ]);
+
+    const generatedProdPackageJSON = JSON.parse(fse.readFileSync(`${workspaceFolder}/_isolated_/package-prod.json`).toString());
+
+    expect(mainPackageJSON.dependencies).toEqual(generatedPackageJSON.dependencies);
+    expect(generatedProdPackageJSON.devDependencies).toEqual({});
+    expect(generatedProdPackageJSON.workspaces).toEqual([
+      'workspaces/packages/workspace-1',
+      'workspaces/packages/workspace-2',
+      'workspaces/packages/workspace3',
+      'workspaces/packages/workspace-4'
+    ]);
+
+    expect(md5sum.update(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).digest('hex')).toEqual('7d4894d1c31191d85978958b1dc98c24')
+
+  });
+
+  test('--output-folder: create generated in a different output folder', async () => {
+    runWithParam('--output-folder=_isolated-other_');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock'
+    ])
+    expect(fse.existsSync(`${workspaceFolder}/_isolated_`)).toEqual(false)
+  })
+
+  test('--disable-yarnrc:  disable yarnrc creation', async () => {
+    runWithParam('--disable-yarnrc');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock'
+    ])
+  })
+
+  test('--disable-yarn-lock:  disable yarn lock creation', async () => {
+    runWithParam('--disable-yarn-lock');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+    ])
+  })
+
+  test('--disable-src-less-folder: disable src less folder creation', async () => {
+    runWithParam('--disable-src-less-folder');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less-prod',
+      'yarn.lock'
+    ])
+  })
+
+  test('--disable-src-less-prod-folder: disable src less prod folder creation', async () => {
+    runWithParam('--disable-src-less-prod-folder');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'yarn.lock'
+    ])
+  })
+
+  test('--disable-json-file: disable json file creation', async () => {
+    runWithParam('--disable-json-file');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock'
+    ])
+  })
+
+  test('--disable-json-prod-file: disable json prod file creation', async () => {
+    runWithParam('--disable-json-prod-file');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock'
+    ])
+  })
 
 });

@@ -17,8 +17,8 @@ function getParam(param, value = false) {
 if (getParam('--help')) printHelp();
 
 const ignoreCopyDev = getParam('--ignore-copy-dev');
-const ignoreYarnLock = getParam('--ignore-yarn-lock');
-const ignoreYarnrc = getParam('--ignore-yarnrc');
+const ignoreYarnLock = getParam('--disable-yarn-lock');
+const ignoreYarnrc = getParam('--disable-yarnrc');
 const createSrcLessFolder = !getParam('--disable-src-less-folder');
 const createSrcLessProdFolder = !getParam('--disable-src-less-prod-folder');
 const createJsonFile = !getParam('--disable-json-file');
@@ -86,13 +86,13 @@ function printHelp() {
   use:
   # yarn-isolate [options] [workspace name to isolate]
 
-    [--ignore-copy-dev]               ignore DEV dependencies on copying workspaces.
-    [--ignore-yarnrc]                 in monorepo-mode yarnrc will be created, can ignore it.
-    [--ignore-yarn-lock]              not generate yarn.lock on root workspace folder.
-    [--disable-src-less-folder]       not create the src-less folders
-    [--disable-src-less-prod-folder]  not create the prod src-less folder
-    [--disable-json-file]             not create json file
-    [--disable-json-prod-file]        not create json prod json file
+    [--ignore-copy-dev]              disable DEV dependencies on copying workspaces
+    [--disable-yarnrc]                wont generate .yarnrc file
+    [--disable-yarn-lock]             wont generate yarn.lock
+    [--disable-src-less-folder]       wont create the src-less folders
+    [--disable-src-less-prod-folder]  wont create the prod src-less folder
+    [--disable-json-file]             wont create json file
+    [--disable-json-prod-file]        wont create json prod json file
     [--output-folder]                 folder to create all generated files (default to _isolated_)
   * [--copy-files-only]               include only files listed on the file key in the package.json
   * [--ignore-copy-pattern={value}]   pattern that mach the pattern will be ignore in copy

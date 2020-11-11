@@ -7,3 +7,11 @@
   integrity sha512-shashashashashashashhsa==
   dependencies:
     "in-w1-dev-dep-2" "2"
+
+
+noop@1:
+  version "7.10.4"
+  resolved "https://registry.yarnpkg.com/in-w1-dev-dep-1.tgz#123123"
+  integrity sha512-shashashashashashashhsa==
+  dependencies:
+    in-w1-dev-dep-2 "2"

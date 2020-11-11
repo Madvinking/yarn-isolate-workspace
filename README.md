@@ -39,22 +39,18 @@ it will make the selected workspace the root of the workspace project
 ## Cli params
 ```
   #### yarn-isolate [options] [workspace name to isolate]
-  * [--copy-files-only]                      include only files listed on the file key in the package.json
-  * [--ignore-copy-pattern={value}]          pattern that mach the pattern will be ignore in copy
-    [--ignore-copy-dev]                      ignore DEV dependencies on copying workspaces.
-    [--ignore-dev-package-json]              run --ignore-copy-dev and filter dev-dependencies from package.json.
-    [--ignore-dev-package-json-name={value}] create a package.json file filter dev-dependencies in different name
-    [--package-json-name={value}]            create a package.json file in a different name
-    [--src-less-folders]                     create mirror copy folder contains only packages.json files
-    [--default-workspaces-folder={value}]    different folder to copy related workspace inside the root workspace.
-    [--ignore-yarnrc]                        in monorepo-mode yarnrc will be created, can ignore it.
-    [--ignore-yarn-lock]                     not generate yarn.lock on root workspace folder.
-    [--monorepo-mode]                        make the current workspace a mono-repo project.
-    [--max-depth]                            by default we search recursively project-root 5 folder
+    [--ignore-copy-dev]              disable DEV dependencies on copying workspaces
+    [--disable-yarnrc]                wont generate .yarnrc file
+    [--disable-yarn-lock]             wont generate yarn.lock
+    [--disable-src-less-folder]       wont create the src-less folders
+    [--disable-src-less-prod-folder]  wont create the prod src-less folder
+    [--disable-json-file]             wont create json file
+    [--disable-json-prod-file]        wont create json prod json file
+    [--output-folder]                 folder to create all generated files (default to _isolated_)
+  * [--copy-files-only]               include only files listed on the file key in the package.json
+  * [--ignore-copy-pattern={value}]   pattern that mach the pattern will be ignore in copy
+    [--max-depth]                     by default we search recursively project-root 5 folder
+    [--workspace-folder={value}]      absolute path to project-root (default will look for the root)
 
   * in progress
 ```
-
-
-## known issues:
- - when use --src-less-folders not working in original mode only with --monorepo-mode files, in srsless folders the folders are not being set relative
