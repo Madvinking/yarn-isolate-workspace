@@ -3,16 +3,20 @@ const fse = require('fs-extra');
 const path = require('path');
 const crypto = require('crypto');
 const md5sum = crypto.createHash('md5');
-const runWithParam = (params = '') => {
-  execSync(`node ${path.join(__dirname, '../src/index.js')} --root-workspace=${path.join(__dirname, 'monoRepo')} root-workspace ${params}`);
-}
 
 let workspaceFolder = path.join(__dirname, 'monoRepo/packages/root-workspace');
+let workspaceFolder1 = path.join(__dirname, 'monoRepo/packages/workspace-1');
+
+const runWithParam = (params = '', workspace = 'root-workspace' ) => {
+  execSync(`node ${path.join(__dirname, '../src/index.js')} --root-workspace=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`);
+}
+
+const clean = () => {
+  execSync(` rm -rf ${workspaceFolder}/_isolated_ ${workspaceFolder}/_isolated-other_ ${workspaceFolder1}/_isolated_ ${workspaceFolder1}/_isolated-other_`)
+}
 
 describe('full cycle of isolated', () => {
-  afterEach(() => {
-    execSync(`cd ${workspaceFolder} && rm -rf _isolated_ _isolated-other_`)
-  });
+  afterEach(clean);
 
   test('should create all files', async () => {
     runWithParam();
@@ -184,6 +188,15 @@ describe('full cycle of isolated', () => {
       'workspaces-src-less-prod',
       'yarn.lock'
     ])
+  })
+
+  test.only('should not copy nested output folders (default _isolated_', async () => {
+    runWithParam('--output-folder=_isolated-other_', 'workspace-1');
+    runWithParam('--output-folder=_isolated-other_');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_/workspaces/packages/workspace-1`);
+
+    expect(folder).toEqual(['package.json', 'src.js']);
   })
 
 });

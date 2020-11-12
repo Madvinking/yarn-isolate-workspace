@@ -74,7 +74,9 @@ const lockfile = require('@yarnpkg/lockfile');
 
       //TODO ignore pattern list right now ignore node_modules
       fse.copySync(subWorkspace.location, subWorkspace.newLocation, {
-        filter: src => !src.includes('node_modules'),
+        filter: src => {
+          return !src.includes('node_modules') && !src.includes(outPutFolder)
+        },
       });
 
       fse.writeFileSync(
