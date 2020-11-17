@@ -86,7 +86,7 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace-4'
     ]);
 
-    expect(md5sum.update(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).digest('hex')).toEqual('cf5eb3ce953f6129f89138c1f0bdd194')
+    expect(md5sum.update(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).digest('hex')).toEqual('4e875b705c9c697f825fdea27b668023')
 
   });
 
