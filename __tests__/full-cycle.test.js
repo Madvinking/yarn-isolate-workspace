@@ -16,9 +16,9 @@ const clean = () => {
 }
 
 describe('full cycle of isolated', () => {
-  afterEach(clean);
+  // afterEach(clean);
 
-  test('should create all files', async () => {
+  test.only('should create all files', async () => {
     runWithParam();
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
@@ -209,7 +209,7 @@ describe('full cycle of isolated', () => {
     expect(folder).toEqual(['_isolated-other_', 'package.json']);
   })
 
-  test.only('should include in src-less param', async () => {
+  test('should include in src-less param', async () => {
     runWithParam(`--includes-with-src-less='src.js|package.json'`);
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1`);
