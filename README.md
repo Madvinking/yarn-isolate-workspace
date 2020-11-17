@@ -1,4 +1,6 @@
-# yarn-isolate-workspace
+# yarn-isolate-workspace 
+
+![npm](https://img.shields.io/npm/v/yarn-isolate-workspace)
 
 **Isolate a workspace in yarn workspaces project**
 when working in yarn workspaces environment
