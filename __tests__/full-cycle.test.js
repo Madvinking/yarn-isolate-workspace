@@ -190,11 +190,7 @@ describe('full cycle of isolated', () => {
     ])
   })
 
-<<<<<<< HEAD
   test('should not copy nested output folders (default _isolated_)', async () => {
-=======
-  test('should not copy nested output folders (default _isolated_', async () => {
->>>>>>> origin/master
     runWithParam('--output-folder=_isolated-other_', 'workspace-1');
     runWithParam('--output-folder=_isolated-other_');
 
