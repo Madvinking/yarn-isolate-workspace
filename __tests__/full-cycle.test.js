@@ -86,7 +86,7 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace-4'
     ]);
 
-    expect(md5sum.update(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).digest('hex')).toEqual('7d4894d1c31191d85978958b1dc98c24')
+    expect(md5sum.update(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).digest('hex')).toEqual('cf5eb3ce953f6129f89138c1f0bdd194')
 
   });
 
@@ -190,7 +190,7 @@ describe('full cycle of isolated', () => {
     ])
   })
 
-  test.only('should not copy nested output folders (default _isolated_', async () => {
+  test('should not copy nested output folders (default _isolated_', async () => {
     runWithParam('--output-folder=_isolated-other_', 'workspace-1');
     runWithParam('--output-folder=_isolated-other_');
 
