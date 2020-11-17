@@ -36,7 +36,11 @@ const lockfile = require('@yarnpkg/lockfile');
           if (isDevInner) willBeRelatedToDev.push(name)
           else  prodWorkspaces.push(name);
           recursive(name, isDevInner);
-        } else if (!allWorkspaces[name]) collectedDependenciesToInstall.push(`${name}@${version}`);
+        } else if (!allWorkspaces[name]) {
+          if (!isDevInner) {
+            collectedDependenciesToInstall.push(`${name}@${version}`);
+          }
+        }
       };
 
       Object.entries(dependencies).forEach(d => forEachDep(d, isDev));
