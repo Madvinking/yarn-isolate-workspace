@@ -31,14 +31,15 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules",
-    "test": "jest --config jest.config.js",
-    "lint": "eslint --quiet --color packages/**/*.js"
+    "test": "jest --config jest.config.js full-cycle",
+    "lint": "eslint --quiet --color ."
   },
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
     "fs-extra": "^9.0.1"
   },
   "devDependencies": {
+    "husky": "4.3.0",
     "eslint": "^7.12.1",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.1.4",
@@ -48,5 +49,10 @@
   },
   "engines": {
     "node": "<=15.0.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint && yarn test"
+    }
   }
 }
