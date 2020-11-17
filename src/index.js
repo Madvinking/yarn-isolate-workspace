@@ -16,6 +16,9 @@ const lockfile = require('@yarnpkg/lockfile');
     createJsonFile,
     createJsonProdFile,
     outPutFolder,
+    ignoreCopyRegex,
+    includeWithSrcLess,
+    includeWithSrcLessProd
     // copyOnlyFiles,
   } = require('./params');
 
@@ -72,11 +75,11 @@ const lockfile = require('@yarnpkg/lockfile');
 
       subWorkspace.newLocationSrcLessProd = subWorkspace.newLocation.replace('/workspaces/', '/workspaces-src-less-prod/');
 
-      //TODO ignore pattern list right now ignore node_modules
+
+      const ignoreRxgEx = new RegExp(ignoreCopyRegex ? ignoreCopyRegex :  `node_modules|${outPutFolder}`)
+
       fse.copySync(subWorkspace.location, subWorkspace.newLocation, {
-        filter: src => {
-          return !src.includes('node_modules') && !src.includes(outPutFolder)
-        },
+        filter: src => !ignoreRxgEx.test(src)
       });
 
       fse.writeFileSync(
@@ -86,6 +89,18 @@ const lockfile = require('@yarnpkg/lockfile');
 
       if (createSrcLessFolder) {
         fs.mkdirSync(subWorkspace.newLocationSrcLess, { recursive: true });
+        console.log('includeWithSrcLess: ', includeWithSrcLess);
+        if (includeWithSrcLess) {
+          const srcLessRxgEx = new RegExp(includeWithSrcLess);
+          console.log('srcLessRxgEx: ', srcLessRxgEx);
+          fse.copySync(subWorkspace.location, subWorkspace.newLocationSrcLess, {
+            filter: src => {
+            console.log('src: ', src);
+            console.log('srcLessRxgEx.test(src): ', srcLessRxgEx.test(src));
+              return srcLessRxgEx.test(src)
+            }
+          });
+        }
         fse.writeFileSync(
           path.join(subWorkspace.newLocationSrcLess, 'package.json'),
           JSON.stringify(subWorkspace.pkgJson, null, 2)
@@ -95,6 +110,12 @@ const lockfile = require('@yarnpkg/lockfile');
       if (!ignore && createSrcLessProdFolder) {
         fs.mkdirSync(subWorkspace.newLocationSrcLessProd, { recursive: true });
         subWorkspace.pkgJson.devDependencies = {};
+        if (includeWithSrcLessProd) {
+          const srcLessRxgEx = new RegExp(includeWithSrcLessProd);
+          fse.copySync(subWorkspace.location, subWorkspace.newLocationSrcLessProd, {
+            filter: src => srcLessRxgEx.test(src)
+          });
+        }
         fse.writeFileSync(
           path.join(subWorkspace.newLocationSrcLessProd, 'package.json'),
           JSON.stringify(subWorkspace.pkgJson, null, 2)

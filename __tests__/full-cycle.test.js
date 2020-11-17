@@ -190,11 +190,29 @@ describe('full cycle of isolated', () => {
     ])
   })
 
-  test.only('should not copy nested output folders (default _isolated_', async () => {
+  test('should not copy nested output folders (default _isolated_)', async () => {
     runWithParam('--output-folder=_isolated-other_', 'workspace-1');
     runWithParam('--output-folder=_isolated-other_');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_/workspaces/packages/workspace-1`);
+
+    expect(folder).toEqual(['package.json', 'src.js']);
+  })
+
+  test('should filter by regex when copy files (default _isolated_ & node_modules)', async () => {
+
+    runWithParam('--output-folder=_isolated-other_', 'workspace-1');
+    runWithParam(`--output-folder=_isolated-other_ --ignore-copy-regex='src.js|node_modules'`);
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_/workspaces/packages/workspace-1`);
+
+    expect(folder).toEqual(['_isolated-other_', 'package.json']);
+  })
+
+  test.only('should include in src-less param', async () => {
+    runWithParam(`--includes-with-src-less='src.js|package.json'`);
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1`);
 
     expect(folder).toEqual(['package.json', 'src.js']);
   })
