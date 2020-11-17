@@ -39,7 +39,7 @@ const getWorkspacesRoot = dir => {
   }
   if (found) return dir;
   if (max === 0) {
-    console.log('no workspace project found')
+    console.log('no workspace project found');
     process.exit(1);
   }
   max--;
@@ -72,15 +72,12 @@ for (let key in allWorkspaces) {
   allWorkspaces[key].location = path.join(rootDir, allWorkspaces[key].location);
   allWorkspaces[key].pkgJsonLocation = path.join(allWorkspaces[key].location, 'package.json');
   allWorkspaces[key].pkgJson = JSON.parse(fs.readFileSync(allWorkspaces[key].pkgJsonLocation));
-  if (allWorkspaces[key].pkgJson.dependencies &&
-    allWorkspaces[key].pkgJson.dependencies[workspaceName]
-    ) delete allWorkspaces[key].pkgJson.dependencies[workspaceName]
+  if (allWorkspaces[key].pkgJson.dependencies && allWorkspaces[key].pkgJson.dependencies[workspaceName])
+    delete allWorkspaces[key].pkgJson.dependencies[workspaceName];
 
-  if (allWorkspaces[key].pkgJson.devDependencies &&
-    allWorkspaces[key].pkgJson.devDependencies[workspaceName]
-  ) delete allWorkspaces[key].pkgJson.devDependencies[workspaceName]
+  if (allWorkspaces[key].pkgJson.devDependencies && allWorkspaces[key].pkgJson.devDependencies[workspaceName])
+    delete allWorkspaces[key].pkgJson.devDependencies[workspaceName];
 }
-
 
 function printHelp() {
   console.log(`
@@ -109,7 +106,6 @@ function printHelp() {
   process.exit(0);
 }
 
-
 module.exports = {
   rootDir,
   ignoreCopyDev,
@@ -125,5 +121,5 @@ module.exports = {
   createJsonFile,
   createJsonProdFile,
   copyOnlyFiles,
-  ignoreCopyRegex
-}
+  ignoreCopyRegex,
+};
