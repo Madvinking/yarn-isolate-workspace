@@ -21,12 +21,14 @@ const ignoreYarnLock = getParam('--disable-yarn-lock');
 const ignoreYarnrc = getParam('--disable-yarnrc');
 const createSrcLessFolder = !getParam('--disable-src-less-folder');
 const createSrcLessProdFolder = !getParam('--disable-src-less-prod-folder');
+const includeWithSrcLess = getParam('--includes-with-src-less', true);
+const includeWithSrcLessProd = getParam('--includes-with-src-less-prod', true);
 const createJsonFile = !getParam('--disable-json-file');
 const createJsonProdFile = !getParam('--disable-json-prod-file');
 const outPutFolder = getParam('--output-folder', true) || '_isolated_';
 const copyOnlyFiles = getParam('--copy-only-files');
 const rootWorkspace = getParam('--root-workspace', true) || path.resolve();
-
+const ignoreCopyRegex = getParam('--ignore-copy-regex', true);
 let max = getParam('--max-depth', true) || 5;
 const getWorkspacesRoot = dir => {
   const pkg = path.join(dir, 'package.json');
@@ -83,18 +85,20 @@ function printHelp() {
   use:
   # yarn-isolate [options] [workspace name to isolate]
 
-    [--ignore-copy-dev]              disable DEV dependencies on copying workspaces
-    [--disable-yarnrc]                wont generate .yarnrc file
-    [--disable-yarn-lock]             wont generate yarn.lock
-    [--disable-src-less-folder]       wont create the src-less folders
-    [--disable-src-less-prod-folder]  wont create the prod src-less folder
-    [--disable-json-file]             wont create json file
-    [--disable-json-prod-file]        wont create json prod json file
-    [--output-folder]                 folder to create all generated files (default to _isolated_)
-  * [--copy-files-only]               include only files listed on the file key in the package.json
-  * [--ignore-copy-pattern={value}]   pattern that mach the pattern will be ignore in copy
-    [--max-depth]                     by default we search recursively project-root 5 folder
-    [--workspace-folder={value}]      absolute path to project-root (default will look for the root)
+    [--ignore-copy-dev]                    disable DEV dependencies on copying workspaces
+    [--disable-yarnrc]                     wont generate .yarnrc file
+    [--disable-yarn-lock]                  wont generate yarn.lock
+    [--disable-src-less-folder]            wont create the src-less folders
+    [--disable-src-less-prod-folder]       wont create the prod src-less folder
+    [--includes-with-src-less={value}]      extra files to copy to src-less folder
+    [--includes-with-src-less-prod={value}] extra files to copy to src-less folder
+    [--disable-json-file]                  wont create json file
+    [--disable-json-prod-file]             wont create json prod json file
+    [--output-folder]                      folder to create all generated files (default to _isolated_)
+  * [--copy-files-only]                    include only files listed on the file key in the package.json
+    [--ignore-copy-regex={value}]          ignore regex when copy workspaces (default: node_modules and selected output-folder)
+    [--max-depth]                          by default we search recursively project-root 5 folder
+    [--workspace-folder={value}]           absolute path to project-root (default will look for the root)
 
   * in progress
 `);
@@ -111,8 +115,11 @@ module.exports = {
   ignoreYarnLock,
   createSrcLessFolder,
   createSrcLessProdFolder,
+  includeWithSrcLess,
+  includeWithSrcLessProd,
   outPutFolder,
   createJsonFile,
   createJsonProdFile,
   copyOnlyFiles,
+  ignoreCopyRegex,
 };

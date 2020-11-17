@@ -16,8 +16,13 @@ const {
   createJsonFile,
   createJsonProdFile,
   outPutFolder,
+  ignoreCopyRegex,
+  includeWithSrcLess,
+  includeWithSrcLessProd,
   // copyOnlyFiles,
 } = require('./params');
+
+const currentWorkspace = allWorkspaces[workspaceName];
 
 function getAllRelatedWorkspaces() {
   const prodWorkspaces = [];
@@ -57,58 +62,86 @@ function getAllRelatedWorkspaces() {
   };
 }
 
-function createFolderForRelatedWorkspaces() {
-  allWorkspaces[workspaceName].newLocation = `${allWorkspaces[workspaceName].location}/${outPutFolder}`;
+function createFolderDestinationFolders() {
+  currentWorkspace.newLocation = `${currentWorkspace.location}/${outPutFolder}`;
+  currentWorkspace.workspaceFolder = `${currentWorkspace.location}/${outPutFolder}/workspaces/`;
+  currentWorkspace.srcLessFolder = `${currentWorkspace.location}/${outPutFolder}/workspaces-src-less/`;
+  currentWorkspace.srcLessFolderProd = `${currentWorkspace.location}/${outPutFolder}/workspaces-src-less-prod/`;
 
-  fs.rmdirSync(allWorkspaces[workspaceName].newLocation, { recursive: true });
-  fs.mkdirSync(`${allWorkspaces[workspaceName].newLocation}/workspaces`, { recursive: true });
-  if (createSrcLessFolder) fs.mkdirSync(`${allWorkspaces[workspaceName].newLocation}/workspaces-src-less`, { recursive: true });
-  if (createSrcLessProdFolder)
-    fs.mkdirSync(`${allWorkspaces[workspaceName].newLocation}/workspaces-src-less-prod`, { recursive: true });
+  fs.rmdirSync(currentWorkspace.newLocation, { recursive: true });
+  fs.mkdirSync(currentWorkspace.workspaceFolder, { recursive: true });
+  if (createSrcLessFolder) fs.mkdirSync(currentWorkspace.srcLessFolder, { recursive: true });
+  if (createSrcLessProdFolder) fs.mkdirSync(currentWorkspace.srcLessFolderProd, { recursive: true });
 }
 
-function copyRelatedWorkspacesToDest(prodWorkspaces, devWorkspaces) {
-  const destinationFolder = allWorkspaces[workspaceName].newLocation;
-  const copyWorkspace = (name, ignore = false) => {
+function resolveWorkspacesNewLocation(prodWorkspaces, devWorkspaces) {
+  [...prodWorkspaces, ...devWorkspaces].forEach(name => {
+    const subWorkspace = allWorkspaces[name];
+    const relativePath = path.relative(rootDir, subWorkspace.location);
+    subWorkspace.workspaceFolder = path.join(currentWorkspace.workspaceFolder, relativePath);
+    subWorkspace.srcLessFolder = path.join(currentWorkspace.srcLessFolder, relativePath);
+    subWorkspace.srcLessFolderProd = path.join(currentWorkspace.srcLessFolderProd, relativePath);
+  });
+}
+
+function copyWorkspacesToNewLocation(prodWorkspaces, devWorkspaces) {
+  [...prodWorkspaces, ...devWorkspaces].forEach(name => {
     const subWorkspace = allWorkspaces[name];
 
-    subWorkspace.newLocation = path.join(destinationFolder, 'workspaces', path.relative(rootDir, subWorkspace.location));
-    subWorkspace.newLocationSrcLess = subWorkspace.newLocation.replace('/workspaces/', '/workspaces-src-less/');
-
-    subWorkspace.newLocationSrcLessProd = subWorkspace.newLocation.replace('/workspaces/', '/workspaces-src-less-prod/');
-
-    //TODO ignore pattern list right now ignore node_modules
-    fse.copySync(subWorkspace.location, subWorkspace.newLocation, {
-      filter: src => {
-        return !src.includes('node_modules') && !src.includes(outPutFolder);
-      },
+    const ignoreRxgEx = new RegExp(ignoreCopyRegex ? ignoreCopyRegex : `node_modules|${outPutFolder}`);
+    fs.mkdirSync(subWorkspace.workspaceFolder, { recursive: true });
+    fse.copySync(subWorkspace.location, subWorkspace.workspaceFolder, {
+      filter: src => !ignoreRxgEx.test(src),
     });
 
-    fse.writeFileSync(path.join(subWorkspace.newLocation, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
+    fse.writeFileSync(path.join(subWorkspace.workspaceFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
+  });
+}
 
-    if (createSrcLessFolder) {
-      fs.mkdirSync(subWorkspace.newLocationSrcLess, { recursive: true });
-      fse.writeFileSync(path.join(subWorkspace.newLocationSrcLess, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
-    }
+function copySrcLessToNewLocation(prodWorkspaces, devWorkspaces) {
+  if (createSrcLessFolder) {
+    [...prodWorkspaces, ...devWorkspaces].forEach(name => {
+      const subWorkspace = allWorkspaces[name];
+      fs.mkdirSync(subWorkspace.srcLessFolder, { recursive: true });
 
-    if (!ignore && createSrcLessProdFolder) {
-      fs.mkdirSync(subWorkspace.newLocationSrcLessProd, { recursive: true });
+      if (includeWithSrcLess) {
+        const srcLessRxgEx = new RegExp(includeWithSrcLess);
+        fse.copySync(subWorkspace.location, subWorkspace.srcLessFolder, {
+          filter: src => {
+            if (src === subWorkspace.location) return true;
+
+            return srcLessRxgEx.test(src);
+          },
+        });
+      }
+      fse.writeFileSync(path.join(subWorkspace.srcLessFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
+    });
+  }
+}
+
+function copySrcLessProdToNewLocation(prodWorkspaces) {
+  if (createSrcLessProdFolder) {
+    prodWorkspaces.forEach(name => {
+      const subWorkspace = allWorkspaces[name];
+      fs.mkdirSync(subWorkspace.srcLessFolderProd, { recursive: true });
       subWorkspace.pkgJson.devDependencies = {};
-      fse.writeFileSync(
-        path.join(subWorkspace.newLocationSrcLessProd, 'package.json'),
-        JSON.stringify(subWorkspace.pkgJson, null, 2),
-      );
-    }
-  };
-
-  prodWorkspaces.forEach(w => copyWorkspace(w, false));
-  devWorkspaces.forEach(w => copyWorkspace(w, true));
+      if (includeWithSrcLessProd) {
+        const srcLessRxgEx = new RegExp(includeWithSrcLessProd);
+        fse.copySync(subWorkspace.location, subWorkspace.srcLessFolderProd, {
+          filter: src => {
+            if (src === subWorkspace.location) return true;
+            return srcLessRxgEx.test(src);
+          },
+        });
+      }
+      fse.writeFileSync(path.join(subWorkspace.srcLessFolderProd, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
+    });
+  }
 }
 
 function createMainJsonFile(prodWorkspaces, devWorkspaces) {
-  const currentWorkspace = allWorkspaces[workspaceName];
   currentWorkspace.pkgJson.workspaces = prodWorkspaces.map(name =>
-    path.relative(currentWorkspace.newLocation, allWorkspaces[name].newLocation),
+    path.relative(currentWorkspace.newLocation, allWorkspaces[name].workspaceFolder),
   );
 
   let currentDevDependencies = {};
@@ -127,7 +160,7 @@ function createMainJsonFile(prodWorkspaces, devWorkspaces) {
 
   currentWorkspace.pkgJson.devDependencies = currentDevDependencies;
   currentWorkspace.pkgJson.workspaces.push(
-    ...devWorkspaces.map(name => path.relative(currentWorkspace.newLocation, allWorkspaces[name].newLocation)),
+    ...devWorkspaces.map(name => path.relative(currentWorkspace.workspaceFolder, allWorkspaces[name].workspaceFolder)),
   );
 
   if (createJsonFile) {
@@ -138,7 +171,7 @@ function createMainJsonFile(prodWorkspaces, devWorkspaces) {
 function createYarnRc() {
   if (ignoreYarnrc) return;
 
-  fse.writeFileSync(path.join(allWorkspaces[workspaceName].newLocation, '.yarnrc'), 'workspaces-experimental true');
+  fse.writeFileSync(path.join(currentWorkspace.newLocation, '.yarnrc'), 'workspaces-experimental true');
 }
 
 function createYarnLock(dependenciesList) {
@@ -153,20 +186,19 @@ function createYarnLock(dependenciesList) {
 
   let newFile = Object.fromEntries(Object.entries(oldFile).filter(([name]) => dependenciesList.includes(name)));
 
-  fs.writeFileSync(path.join(allWorkspaces[workspaceName].newLocation, 'yarn.lock'), lockfile.stringify(newFile));
+  fs.writeFileSync(path.join(currentWorkspace.newLocation, 'yarn.lock'), lockfile.stringify(newFile));
 }
 
-function start() {
+async function start() {
   const { prodWorkspaces, devWorkspaces, collectedDependenciesToInstall } = getAllRelatedWorkspaces();
 
-  createFolderForRelatedWorkspaces();
-
-  copyRelatedWorkspacesToDest(prodWorkspaces, devWorkspaces);
-
+  createFolderDestinationFolders();
+  resolveWorkspacesNewLocation(prodWorkspaces, devWorkspaces);
+  copyWorkspacesToNewLocation(prodWorkspaces, devWorkspaces);
+  copySrcLessToNewLocation(prodWorkspaces, devWorkspaces);
+  copySrcLessProdToNewLocation(prodWorkspaces);
   createMainJsonFile(prodWorkspaces, devWorkspaces);
-
   createYarnRc();
-
   createYarnLock(collectedDependenciesToInstall);
 }
 
