@@ -44,7 +44,7 @@ const lockfile = require('@yarnpkg/lockfile');
       };
 
       Object.entries(dependencies).forEach(d => forEachDep(d, isDev));
-      if (!ignoreCopyDev) Object.entries(devDependencies).forEach(d => forEachDep(d, true));
+      if (!ignoreCopyDev) Object.entries(devDependencies).forEach(d => forEachDep(d, packageName !== workspaceName));
     };
 
     recursive(workspaceName, false);
