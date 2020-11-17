@@ -22,7 +22,7 @@ const clean = () => {
 describe('full cycle of isolated', () => {
   afterEach(clean);
 
-  test.skip('should create all files', async () => {
+  test('should create all files', async () => {
     runWithParam();
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
