@@ -43,6 +43,7 @@ const lockfile = require('@yarnpkg/lockfile');
         }
       };
 
+      console.log(packageName);
       Object.entries(dependencies).forEach(d => forEachDep(d, isDev));
       if (!ignoreCopyDev) Object.entries(devDependencies).forEach(d => forEachDep(d, packageName !== workspaceName));
     };
