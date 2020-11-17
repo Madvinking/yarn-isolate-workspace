@@ -1,11 +1,7 @@
 const prettierRules = require('./.prettierrc.js');
 
 module.exports = {
-  parser: '@typescript-eslint/parser',
-  extends: [
-    'eslint:recommended',
-    'eslint-config-prettier',
-  ],
+  extends: ['eslint:recommended', 'eslint-config-prettier'],
   rules: {
     'prettier/prettier': ['error', prettierRules],
     'no-unused-vars': ['error', { ignoreRestSiblings: true }],
