@@ -196,9 +196,7 @@ function createYarnLock(dependenciesList) {
 
 async function start() {
   const prodWorkspaces = getProdWorkspaces();
-  console.log('prodWorkspaces: ', prodWorkspaces);
   const devWorkspaces = getDevWorkspaces(prodWorkspaces);
-  console.log('devWorkspaces: ', devWorkspaces);
   const workspaces = [...prodWorkspaces, ...devWorkspaces];
   createFolderDestinationFolders();
   resolveWorkspacesNewLocation(workspaces);
