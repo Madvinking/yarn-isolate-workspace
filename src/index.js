@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
 const lockfile = require('@yarnpkg/lockfile');
+const readDirSync = require('fs-readdir-recursive');
 
 const {
   rootDir,
@@ -111,13 +112,12 @@ function copySrcLessToNewLocation(workspaces) {
 
       if (includeWithSrcLess) {
         const srcLessRxgEx = new RegExp(includeWithSrcLess);
-        fse.copySync(subWorkspace.location, subWorkspace.srcLessFolder, {
-          filter: src => {
-            if (src === subWorkspace.location) return true;
-
-            return srcLessRxgEx.test(src);
-          },
+        const files = readDirSync(subWorkspace.location, name => {
+          return name !== 'node_modules' || name[0] !== '.';
         });
+        files
+          .filter(f => srcLessRxgEx.test(f))
+          .forEach(file => fse.copySync(path.join(subWorkspace.location, file), path.join(subWorkspace.srcLessFolder, file)));
       }
       fse.writeFileSync(path.join(subWorkspace.srcLessFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
     });
@@ -132,12 +132,12 @@ function copySrcLessProdToNewLocation(prodWorkspaces) {
       subWorkspace.pkgJson.devDependencies = {};
       if (includeWithSrcLessProd) {
         const srcLessRxgEx = new RegExp(includeWithSrcLessProd);
-        fse.copySync(subWorkspace.location, subWorkspace.srcLessFolderProd, {
-          filter: src => {
-            if (src === subWorkspace.location) return true;
-            return srcLessRxgEx.test(src);
-          },
+        const files = readDirSync(subWorkspace.location, name => {
+          return name !== 'node_modules' || name[0] !== '.';
         });
+        files
+          .filter(f => srcLessRxgEx.test(f))
+          .forEach(file => fse.copySync(path.join(subWorkspace.location, file), path.join(subWorkspace.srcLessFolderProd, file)));
       }
       fse.writeFileSync(path.join(subWorkspace.srcLessFolderProd, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
     });
