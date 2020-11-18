@@ -1,8 +1,6 @@
 const { execSync } = require('child_process');
 const fse = require('fs-extra');
 const path = require('path');
-const crypto = require('crypto');
-const md5sum = crypto.createHash('md5');
 
 let workspaceFolder = path.join(__dirname, 'monoRepo/packages/root-workspace');
 let workspaceFolder1 = path.join(__dirname, 'monoRepo/packages/workspace-1');
@@ -44,8 +42,7 @@ describe('full cycle of isolated', () => {
       'workspace11',
       'workspace12',
       'workspace13',
-      'workspace14',
-      'workspace15',
+      'workspace16',
       'workspace3',
     ];
 
@@ -85,8 +82,7 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace11',
       'workspaces/packages/workspace12',
       'workspaces/packages/workspace13',
-      'workspaces/packages/workspace14',
-      'workspaces/packages/workspace15',
+      'workspaces/packages/workspace16',
     ]);
 
     const generatedProdPackageJSON = JSON.parse(fse.readFileSync(`${workspaceFolder}/_isolated_/package-prod.json`).toString());
@@ -100,9 +96,7 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace-4',
     ]);
 
-    expect(md5sum.update(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).digest('hex')).toEqual(
-      'cf5eb3ce953f6129f89138c1f0bdd194',
-    );
+    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).toMatchSnapshot();
   });
 
   test('--output-folder: generated in a different output folder', async () => {

@@ -44,7 +44,7 @@ function getDevWorkspaces(prodWorkspaces) {
     Object.keys(dependencies).forEach(depName => {
       if (allWorkspaces[depName] && !list.includes(depName)) {
         list.push(depName);
-        recursive({ ...allWorkspaces[depName].pkgJson.dependencies, ...allWorkspaces[depName].pkgJson.devDependencies });
+        recursive(allWorkspaces[depName].pkgJson.dependencies);
       }
     });
   };
@@ -99,7 +99,7 @@ function copyWorkspacesToNewLocation(workspaces) {
     fse.copySync(subWorkspace.location, subWorkspace.workspaceFolder, {
       filter: src => !ignoreRxgEx.test(src),
     });
-
+    subWorkspace.pkgJson.devDependencies = {};
     fse.writeFileSync(path.join(subWorkspace.workspaceFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
   });
 }
