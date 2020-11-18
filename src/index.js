@@ -73,8 +73,7 @@ function createFolderDestinationFolders() {
   currentWorkspace.workspaceFolder = `${currentWorkspace.location}/${outPutFolder}/workspaces/`;
   currentWorkspace.srcLessFolder = `${currentWorkspace.location}/${outPutFolder}/workspaces-src-less/`;
   currentWorkspace.srcLessFolderProd = `${currentWorkspace.location}/${outPutFolder}/workspaces-src-less-prod/`;
-
-  fs.rmdirSync(currentWorkspace.newLocation, { recursive: true });
+  if (fs.existsSync(currentWorkspace.newLocation)) fs.rmdirSync(currentWorkspace.newLocation, { recursive: true });
   fs.mkdirSync(currentWorkspace.workspaceFolder, { recursive: true });
   if (createSrcLessFolder) fs.mkdirSync(currentWorkspace.srcLessFolder, { recursive: true });
   if (createSrcLessProdFolder) fs.mkdirSync(currentWorkspace.srcLessFolderProd, { recursive: true });
