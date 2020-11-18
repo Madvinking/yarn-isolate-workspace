@@ -24,6 +24,34 @@ const {
 
 const currentWorkspace = allWorkspaces[workspaceName];
 
+function getProdWorkspaces() {
+  const list = [];
+  const recursive = (dependencies = {}) => {
+    Object.keys(dependencies).forEach(depName => {
+      if (allWorkspaces[depName] && !list.includes(depName)) {
+        list.push(depName);
+        recursive(allWorkspaces[depName].pkgJson.dependencies);
+      }
+    });
+  };
+  recursive(currentWorkspace.pkgJson.dependencies);
+  return list;
+}
+
+function getDevWorkspaces() {
+  const list = [];
+  const recursive = (dependencies = {}) => {
+    Object.keys(dependencies).forEach(depName => {
+      if (allWorkspaces[depName] && !list.includes(depName)) {
+        list.push(depName);
+        recursive({ ...allWorkspaces[depName].pkgJson.dependencies, ...allWorkspaces[depName].pkgJson.devDependencies });
+      }
+    });
+  };
+  recursive(currentWorkspace.pkgJson.devDependencies);
+  return list;
+}
+
 function getAllRelatedWorkspaces() {
   const prodWorkspaces = [];
 
@@ -160,7 +188,7 @@ function createMainJsonFile(prodWorkspaces, devWorkspaces) {
 
   currentWorkspace.pkgJson.devDependencies = currentDevDependencies;
   currentWorkspace.pkgJson.workspaces.push(
-    ...devWorkspaces.map(name => path.relative(currentWorkspace.workspaceFolder, allWorkspaces[name].workspaceFolder)),
+    ...devWorkspaces.map(name => path.relative(currentWorkspace.newLocation, allWorkspaces[name].workspaceFolder)),
   );
 
   if (createJsonFile) {
@@ -190,8 +218,9 @@ function createYarnLock(dependenciesList) {
 }
 
 async function start() {
-  const { prodWorkspaces, devWorkspaces, collectedDependenciesToInstall } = getAllRelatedWorkspaces();
-
+  const { collectedDependenciesToInstall } = getAllRelatedWorkspaces();
+  const prodWorkspaces = getProdWorkspaces();
+  const devWorkspaces = getDevWorkspaces();
   createFolderDestinationFolders();
   resolveWorkspacesNewLocation(prodWorkspaces, devWorkspaces);
   copyWorkspacesToNewLocation(prodWorkspaces, devWorkspaces);

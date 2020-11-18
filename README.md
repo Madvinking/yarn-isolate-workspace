@@ -81,18 +81,20 @@ this folder contain number of stuff
 ## Cli params
 ```
   #### yarn-isolate [options] [workspace name to isolate]
-    [--ignore-copy-dev]              disable DEV dependencies on copying workspaces
-    [--disable-yarnrc]                wont generate .yarnrc file
-    [--disable-yarn-lock]             wont generate yarn.lock
-    [--disable-src-less-folder]       wont create the src-less folders
-    [--disable-src-less-prod-folder]  wont create the prod src-less folder
-    [--disable-json-file]             wont create json file
-    [--disable-json-prod-file]        wont create json prod json file
-    [--output-folder]                 folder to create all generated files (default to _isolated_)
-  * [--copy-files-only]               include only files listed on the file key in the package.json
-  * [--ignore-copy-pattern={value}]   pattern that mach the pattern will be ignore in copy
-    [--max-depth]                     by default we search recursively project-root 5 folder
-    [--workspace-folder={value}]      absolute path to project-root (default will look for the root)
+    [--ignore-copy-dev]                    disable DEV dependencies on copying workspaces
+    [--disable-yarnrc]                     wont generate .yarnrc file
+    [--disable-yarn-lock]                  wont generate yarn.lock
+    [--disable-src-less-folder]            wont create the src-less folders
+    [--disable-src-less-prod-folder]       wont create the prod src-less folder
+    [--includes-with-src-less={value}]      extra files to copy to src-less folder
+    [--includes-with-src-less-prod={value}] extra files to copy to src-less folder
+    [--disable-json-file]                  wont create json file
+    [--disable-json-prod-file]             wont create json prod json file
+    [--output-folder]                      folder to create all generated files (default to _isolated_)
+  * [--copy-files-only]                    include only files listed on the file key in the package.json
+    [--ignore-copy-regex={value}]          ignore regex when copy workspaces (default: node_modules and selected output-folder)
+    [--max-depth]                          by default we search recursively project-root 5 folder
+    [--workspace-folder={value}]           absolute path to project-root (default will look for the root)
 
   * in progress
 ```
