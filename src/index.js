@@ -6,7 +6,6 @@ const lockfile = require('@yarnpkg/lockfile');
 
 const {
   rootDir,
-  ignoreCopyDev,
   ignoreYarnrc,
   ignoreYarnLock,
   workspaceName,
@@ -52,42 +51,20 @@ function getDevWorkspaces() {
   return list;
 }
 
-function getAllRelatedWorkspaces() {
-  const prodWorkspaces = [];
-
-  const willBeRelatedToDev = [];
-
-  const collectedDependenciesToInstall = [];
-
-  const recursive = (packageName, isDev = false) => {
-    const {
-      pkgJson: { dependencies = {}, devDependencies = {} },
-    } = allWorkspaces[packageName];
-
-    const forEachDep = ([name, version], isDevInner = false) => {
-      if (allWorkspaces[name] && !prodWorkspaces.includes(name)) {
-        if (isDevInner) willBeRelatedToDev.push(name);
-        else prodWorkspaces.push(name);
-        recursive(name, isDevInner);
-      } else if (!allWorkspaces[name]) {
-        if (!isDevInner) {
-          collectedDependenciesToInstall.push(`${name}@${version}`);
-        }
+function getDependencies() {
+  const list = [];
+  const recursive = (dependencies = {}) => {
+    Object.entries(dependencies).forEach(([name, version]) => {
+      const depName = `${name}@${version}`;
+      if (!allWorkspaces[name] && !list.includes(depName)) {
+        list.push(depName);
+      } else if (allWorkspaces[name]) {
+        recursive(allWorkspaces[name].pkgJson.dependencies);
       }
-    };
-
-    Object.entries(dependencies).forEach(d => forEachDep(d, isDev));
-    if (!ignoreCopyDev) Object.entries(devDependencies).forEach(d => forEachDep(d, packageName !== workspaceName));
+    });
   };
-
-  recursive(workspaceName, false);
-  const devWorkspaces = willBeRelatedToDev.filter(name => !prodWorkspaces.includes(name));
-
-  return {
-    prodWorkspaces: [...new Set(prodWorkspaces)],
-    collectedDependenciesToInstall: [...new Set(collectedDependenciesToInstall)],
-    devWorkspaces: [...new Set(devWorkspaces)],
-  };
+  recursive({ ...currentWorkspace.pkgJson.dependencies, ...currentWorkspace.pkgJson.devDependencies });
+  return list;
 }
 
 function createFolderDestinationFolders() {
@@ -102,8 +79,8 @@ function createFolderDestinationFolders() {
   if (createSrcLessProdFolder) fs.mkdirSync(currentWorkspace.srcLessFolderProd, { recursive: true });
 }
 
-function resolveWorkspacesNewLocation(prodWorkspaces, devWorkspaces) {
-  [...prodWorkspaces, ...devWorkspaces].forEach(name => {
+function resolveWorkspacesNewLocation(workspaces) {
+  workspaces.forEach(name => {
     const subWorkspace = allWorkspaces[name];
     const relativePath = path.relative(rootDir, subWorkspace.location);
     subWorkspace.workspaceFolder = path.join(currentWorkspace.workspaceFolder, relativePath);
@@ -112,8 +89,8 @@ function resolveWorkspacesNewLocation(prodWorkspaces, devWorkspaces) {
   });
 }
 
-function copyWorkspacesToNewLocation(prodWorkspaces, devWorkspaces) {
-  [...prodWorkspaces, ...devWorkspaces].forEach(name => {
+function copyWorkspacesToNewLocation(workspaces) {
+  workspaces.forEach(name => {
     const subWorkspace = allWorkspaces[name];
 
     const ignoreRxgEx = new RegExp(ignoreCopyRegex ? ignoreCopyRegex : `node_modules|${outPutFolder}`);
@@ -126,9 +103,9 @@ function copyWorkspacesToNewLocation(prodWorkspaces, devWorkspaces) {
   });
 }
 
-function copySrcLessToNewLocation(prodWorkspaces, devWorkspaces) {
+function copySrcLessToNewLocation(workspaces) {
   if (createSrcLessFolder) {
-    [...prodWorkspaces, ...devWorkspaces].forEach(name => {
+    workspaces.forEach(name => {
       const subWorkspace = allWorkspaces[name];
       fs.mkdirSync(subWorkspace.srcLessFolder, { recursive: true });
 
@@ -218,16 +195,17 @@ function createYarnLock(dependenciesList) {
 }
 
 async function start() {
-  const { collectedDependenciesToInstall } = getAllRelatedWorkspaces();
   const prodWorkspaces = getProdWorkspaces();
   const devWorkspaces = getDevWorkspaces();
+  const workspaces = [...prodWorkspaces, ...devWorkspaces];
   createFolderDestinationFolders();
-  resolveWorkspacesNewLocation(prodWorkspaces, devWorkspaces);
-  copyWorkspacesToNewLocation(prodWorkspaces, devWorkspaces);
-  copySrcLessToNewLocation(prodWorkspaces, devWorkspaces);
+  resolveWorkspacesNewLocation(workspaces);
+  copyWorkspacesToNewLocation(workspaces);
+  copySrcLessToNewLocation(workspaces);
   copySrcLessProdToNewLocation(prodWorkspaces);
   createMainJsonFile(prodWorkspaces, devWorkspaces);
   createYarnRc();
+  const collectedDependenciesToInstall = getDependencies();
   createYarnLock(collectedDependenciesToInstall);
 }
 

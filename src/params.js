@@ -16,7 +16,6 @@ function getParam(param, value = false) {
 
 if (getParam('--help')) printHelp();
 
-const ignoreCopyDev = getParam('--ignore-copy-dev');
 const ignoreYarnLock = getParam('--disable-yarn-lock');
 const ignoreYarnrc = getParam('--disable-yarnrc');
 const createSrcLessFolder = !getParam('--disable-src-less-folder');
@@ -84,8 +83,6 @@ function printHelp() {
   isolating workspace in yarn workspace project
   use:
   # yarn-isolate [options] [workspace name to isolate]
-
-    [--ignore-copy-dev]                    disable DEV dependencies on copying workspaces
     [--disable-yarnrc]                     wont generate .yarnrc file
     [--disable-yarn-lock]                  wont generate yarn.lock
     [--disable-src-less-folder]            wont create the src-less folders
@@ -108,7 +105,6 @@ function printHelp() {
 
 module.exports = {
   rootDir,
-  ignoreCopyDev,
   ignoreYarnrc,
   workspaceName,
   allWorkspaces,

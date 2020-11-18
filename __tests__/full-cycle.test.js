@@ -97,7 +97,7 @@ describe('full cycle of isolated', () => {
     );
   });
 
-  test('--output-folder: create generated in a different output folder', async () => {
+  test('--output-folder: generated in a different output folder', async () => {
     runWithParam('--output-folder=_isolated-other_');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_`);
