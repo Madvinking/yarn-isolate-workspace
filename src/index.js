@@ -44,7 +44,7 @@ function getDevWorkspaces(prodWorkspaces) {
     Object.keys(dependencies).forEach(depName => {
       if (allWorkspaces[depName] && !list.includes(depName)) {
         list.push(depName);
-        recursive({ ...allWorkspaces[depName].pkgJson.dependencies, ...allWorkspaces[depName].pkgJson.devDependencies });
+        recursive(allWorkspaces[depName].pkgJson.dependencies);
       }
     });
   };
@@ -73,8 +73,7 @@ function createFolderDestinationFolders() {
   currentWorkspace.workspaceFolder = `${currentWorkspace.location}/${outPutFolder}/workspaces/`;
   currentWorkspace.srcLessFolder = `${currentWorkspace.location}/${outPutFolder}/workspaces-src-less/`;
   currentWorkspace.srcLessFolderProd = `${currentWorkspace.location}/${outPutFolder}/workspaces-src-less-prod/`;
-
-  fs.rmdirSync(currentWorkspace.newLocation, { recursive: true });
+  if (fs.existsSync(currentWorkspace.newLocation)) fs.rmdirSync(currentWorkspace.newLocation, { recursive: true });
   fs.mkdirSync(currentWorkspace.workspaceFolder, { recursive: true });
   if (createSrcLessFolder) fs.mkdirSync(currentWorkspace.srcLessFolder, { recursive: true });
   if (createSrcLessProdFolder) fs.mkdirSync(currentWorkspace.srcLessFolderProd, { recursive: true });
@@ -99,7 +98,7 @@ function copyWorkspacesToNewLocation(workspaces) {
     fse.copySync(subWorkspace.location, subWorkspace.workspaceFolder, {
       filter: src => !ignoreRxgEx.test(src),
     });
-
+    subWorkspace.pkgJson.devDependencies = {};
     fse.writeFileSync(path.join(subWorkspace.workspaceFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
   });
 }
