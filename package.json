@@ -1,6 +1,6 @@
 {
   "name": "yarn-isolate-workspace",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "will isolate one yarn workspace",
   "main": "src/index.js",
   "bin": {
