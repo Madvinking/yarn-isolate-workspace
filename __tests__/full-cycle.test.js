@@ -44,6 +44,8 @@ describe('full cycle of isolated', () => {
       'workspace11',
       'workspace12',
       'workspace13',
+      'workspace14',
+      'workspace15',
       'workspace3',
     ];
 
@@ -83,6 +85,8 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace11',
       'workspaces/packages/workspace12',
       'workspaces/packages/workspace13',
+      'workspaces/packages/workspace14',
+      'workspaces/packages/workspace15',
     ]);
 
     const generatedProdPackageJSON = JSON.parse(fse.readFileSync(`${workspaceFolder}/_isolated_/package-prod.json`).toString());

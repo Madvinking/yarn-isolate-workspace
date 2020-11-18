@@ -11,6 +11,7 @@
   "devDependencies": {
     "workspace-11": "1",
     "workspace-13": "1",
+    "workspace-15": "1",
     "in-w1-dev-dep-1": "1",
     "in-w1-dev-dep-2": "1"
   }

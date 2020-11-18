@@ -38,7 +38,7 @@ function getProdWorkspaces() {
   return list;
 }
 
-function getDevWorkspaces() {
+function getDevWorkspaces(prodWorkspaces) {
   const list = [];
   const recursive = (dependencies = {}) => {
     Object.keys(dependencies).forEach(depName => {
@@ -48,8 +48,8 @@ function getDevWorkspaces() {
       }
     });
   };
-  recursive(currentWorkspace.pkgJson.devDependencies);
-  return list;
+  recursive({ ...currentWorkspace.pkgJson.dependencies, ...currentWorkspace.pkgJson.devDependencies });
+  return list.filter(w => !prodWorkspaces.includes(w));
 }
 
 function getDependencies() {
@@ -196,7 +196,9 @@ function createYarnLock(dependenciesList) {
 
 async function start() {
   const prodWorkspaces = getProdWorkspaces();
-  const devWorkspaces = getDevWorkspaces();
+  console.log('prodWorkspaces: ', prodWorkspaces);
+  const devWorkspaces = getDevWorkspaces(prodWorkspaces);
+  console.log('devWorkspaces: ', devWorkspaces);
   const workspaces = [...prodWorkspaces, ...devWorkspaces];
   createFolderDestinationFolders();
   resolveWorkspacesNewLocation(workspaces);
