@@ -24,6 +24,7 @@ const {
 
 const currentWorkspace = allWorkspaces[workspaceName];
 
+const ignoreRxgEx = new RegExp(ignoreCopyRegex ? ignoreCopyRegex : `node_modules|${outPutFolder}`);
 function getProdWorkspaces() {
   const list = [];
   const recursive = (dependencies = {}) => {
@@ -93,7 +94,6 @@ function copyWorkspacesToNewLocation(workspaces) {
   workspaces.forEach(name => {
     const subWorkspace = allWorkspaces[name];
 
-    const ignoreRxgEx = new RegExp(ignoreCopyRegex ? ignoreCopyRegex : `node_modules|${outPutFolder}`);
     fs.mkdirSync(subWorkspace.workspaceFolder, { recursive: true });
     fse.copySync(subWorkspace.location, subWorkspace.workspaceFolder, {
       filter: src => !ignoreRxgEx.test(src),
@@ -112,10 +112,10 @@ function copySrcLessToNewLocation(workspaces) {
       if (includeWithSrcLess) {
         const srcLessRxgEx = new RegExp(includeWithSrcLess);
         const files = readDirSync(subWorkspace.location, name => {
-          return name !== 'node_modules' || name[0] !== '.';
+          return name !== 'node_modules' && name[0] !== '.' && name !== outPutFolder;
         });
         files
-          .filter(f => srcLessRxgEx.test(f))
+          .filter(f => !ignoreRxgEx.test(f) && srcLessRxgEx.test(f))
           .forEach(file => fse.copySync(path.join(subWorkspace.location, file), path.join(subWorkspace.srcLessFolder, file)));
       }
       fse.writeFileSync(path.join(subWorkspace.srcLessFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
@@ -132,10 +132,10 @@ function copySrcLessProdToNewLocation(prodWorkspaces) {
       if (includeWithSrcLessProd) {
         const srcLessRxgEx = new RegExp(includeWithSrcLessProd);
         const files = readDirSync(subWorkspace.location, name => {
-          return name !== 'node_modules' || name[0] !== '.';
+          return name !== 'node_modules' && name[0] !== '.' && name !== outPutFolder;
         });
         files
-          .filter(f => srcLessRxgEx.test(f))
+          .filter(f => !ignoreRxgEx.test(f) && srcLessRxgEx.test(f))
           .forEach(file => fse.copySync(path.join(subWorkspace.location, file), path.join(subWorkspace.srcLessFolderProd, file)));
       }
       fse.writeFileSync(path.join(subWorkspace.srcLessFolderProd, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2));
