@@ -28,6 +28,7 @@ const outPutFolder = getParam('--output-folder', true) || '_isolated_';
 const copyOnlyFiles = getParam('--copy-only-files');
 const rootWorkspace = getParam('--root-workspace', true) || path.resolve();
 const ignoreCopyRegex = getParam('--ignore-copy-regex', true);
+const copySrcFiles = getParam('--copy-src-files');
 let max = getParam('--max-depth', true) || 5;
 const getWorkspacesRoot = dir => {
   const pkg = path.join(dir, 'package.json');
@@ -118,4 +119,5 @@ module.exports = {
   createJsonProdFile,
   copyOnlyFiles,
   ignoreCopyRegex,
+  copySrcFiles,
 };

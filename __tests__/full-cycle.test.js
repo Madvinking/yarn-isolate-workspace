@@ -225,4 +225,12 @@ describe('full cycle of isolated', () => {
 
     expect(folder).toEqual(['nestedFolder', 'package.json']);
   });
+
+  test('should include main workspace src files', async () => {
+    runWithParam('--copy-src-files --disable-src-less-folder --disable-yarn-lock');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
+
+    expect(folder).toEqual(['.yarnrc', 'package-prod.json', 'package.json', 'src.js', 'workspaces', 'workspaces-src-less-prod']);
+  });
 });

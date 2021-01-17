@@ -19,6 +19,7 @@ const {
   ignoreCopyRegex,
   includeWithSrcLess,
   includeWithSrcLessProd,
+  copySrcFiles,
   // copyOnlyFiles,
 } = require('./params');
 
@@ -172,6 +173,16 @@ function createMainJsonFile(prodWorkspaces, devWorkspaces) {
   }
 }
 
+function createMainSrcFiles() {
+  if (copySrcFiles) {
+    const files = readDirSync(currentWorkspace.location, name => {
+      return name !== 'node_modules' && name !== outPutFolder;
+    });
+
+    files.forEach(file => fse.copySync(path.join(currentWorkspace.location, file), path.join(currentWorkspace.newLocation, file)));
+  }
+}
+
 function createYarnRc() {
   if (ignoreYarnrc) return;
 
@@ -203,6 +214,7 @@ async function start() {
   copySrcLessToNewLocation(workspaces);
   copySrcLessProdToNewLocation(prodWorkspaces);
   createMainJsonFile(prodWorkspaces, devWorkspaces);
+  createMainSrcFiles();
   createYarnRc();
   const collectedDependenciesToInstall = getDependencies();
   createYarnLock(collectedDependenciesToInstall);
