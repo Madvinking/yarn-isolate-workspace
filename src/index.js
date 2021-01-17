@@ -173,7 +173,7 @@ function createMainJsonFile(prodWorkspaces, devWorkspaces) {
   }
 }
 
-function createMainSrcFiles() {
+function createMainWorkspaceSrcFiles() {
   if (copySrcFiles) {
     const files = readDirSync(currentWorkspace.location, name => {
       return name !== 'node_modules' && name !== outPutFolder;
@@ -214,7 +214,7 @@ async function start() {
   copySrcLessToNewLocation(workspaces);
   copySrcLessProdToNewLocation(prodWorkspaces);
   createMainJsonFile(prodWorkspaces, devWorkspaces);
-  createMainSrcFiles();
+  createMainWorkspaceSrcFiles();
   createYarnRc();
   const collectedDependenciesToInstall = getDependencies();
   createYarnLock(collectedDependenciesToInstall);
