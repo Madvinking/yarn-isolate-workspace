@@ -28,6 +28,7 @@ const outPutFolder = getParam('--output-folder', true) || '_isolated_';
 const copyOnlyFiles = getParam('--copy-only-files');
 const rootWorkspace = getParam('--root-workspace', true) || path.resolve();
 const ignoreCopyRegex = getParam('--ignore-copy-regex', true);
+const copySrcFiles = getParam('--copy-src-files');
 let max = getParam('--max-depth', true) || 5;
 const getWorkspacesRoot = dir => {
   const pkg = path.join(dir, 'package.json');
@@ -92,6 +93,7 @@ function printHelp() {
     [--disable-json-file]                  wont create json file
     [--disable-json-prod-file]             wont create json prod json file
     [--output-folder]                      folder to create all generated files (default to _isolated_)
+    [--copy-src-files]                     include root workspace src files in the isolated folder
   * [--copy-files-only]                    include only files listed on the file key in the package.json
     [--ignore-copy-regex={value}]          ignore regex when copy workspaces (default: node_modules and selected output-folder)
     [--max-depth]                          by default we search recursively project-root 5 folder
@@ -118,4 +120,5 @@ module.exports = {
   createJsonProdFile,
   copyOnlyFiles,
   ignoreCopyRegex,
+  copySrcFiles,
 };

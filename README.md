@@ -1,4 +1,4 @@
-# yarn-isolate-workspace 
+# yarn-isolate-workspace
 
 ![npm](https://img.shields.io/npm/v/yarn-isolate-workspace)
 
@@ -93,6 +93,7 @@ this folder contain number of stuff
     [--disable-json-file]                  wont create json file
     [--disable-json-prod-file]             wont create json prod json file
     [--output-folder]                      folder to create all generated files (default to _isolated_)
+    [--copy-src-files]                     include root workspace src files in the isolated folder
   * [--copy-files-only]                    include only files listed on the file key in the package.json
     [--ignore-copy-regex={value}]          ignore regex when copy workspaces (default: node_modules and selected output-folder)
     [--max-depth]                          by default we search recursively project-root 5 folder
