@@ -144,6 +144,16 @@ function copySrcLessProdToNewLocation(prodWorkspaces) {
   }
 }
 
+function copyMainWorkspaceSrcFiles() {
+  if (copySrcFiles) {
+    const files = readDirSync(currentWorkspace.location, name => {
+      return name !== 'node_modules' && name !== outPutFolder && name !== 'package.json';
+    });
+
+    files.forEach(file => fse.copySync(path.join(currentWorkspace.location, file), path.join(currentWorkspace.newLocation, file)));
+  }
+}
+
 function createMainJsonFile(prodWorkspaces, devWorkspaces) {
   currentWorkspace.pkgJson.workspaces = prodWorkspaces.map(name =>
     path.relative(currentWorkspace.newLocation, allWorkspaces[name].workspaceFolder),
@@ -170,16 +180,6 @@ function createMainJsonFile(prodWorkspaces, devWorkspaces) {
 
   if (createJsonFile) {
     fse.writeFileSync(path.join(currentWorkspace.newLocation, 'package.json'), JSON.stringify(currentWorkspace.pkgJson, null, 2));
-  }
-}
-
-function createMainWorkspaceSrcFiles() {
-  if (copySrcFiles) {
-    const files = readDirSync(currentWorkspace.location, name => {
-      return name !== 'node_modules' && name !== outPutFolder;
-    });
-
-    files.forEach(file => fse.copySync(path.join(currentWorkspace.location, file), path.join(currentWorkspace.newLocation, file)));
   }
 }
 
@@ -213,8 +213,8 @@ async function start() {
   copyWorkspacesToNewLocation(workspaces);
   copySrcLessToNewLocation(workspaces);
   copySrcLessProdToNewLocation(prodWorkspaces);
+  copyMainWorkspaceSrcFiles();
   createMainJsonFile(prodWorkspaces, devWorkspaces);
-  createMainWorkspaceSrcFiles();
   createYarnRc();
   const collectedDependenciesToInstall = getDependencies();
   createYarnLock(collectedDependenciesToInstall);
