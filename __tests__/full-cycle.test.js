@@ -148,7 +148,7 @@ describe('full cycle of isolated', () => {
     expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, {encoding: 'utf-8'})).toEqual('workspaces-experimental true');
   });
 
-  test('--disable-yarn-lock:  disable yarn lock creation', async () => {
+  test.only('--disable-yarn-lock:  disable yarn lock creation', async () => {
     runWithParam('--disable-yarn-lock');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
