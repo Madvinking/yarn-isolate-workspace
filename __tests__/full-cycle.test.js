@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
-const fse = require('fs-extra');
+const fse = require('fs-extra')
+const fs = require('fs');
 const path = require('path');
 
 let workspaceFolder = path.join(__dirname, 'monoRepo/packages/root-workspace');
@@ -7,7 +8,7 @@ let workspaceFolder1 = path.join(__dirname, 'monoRepo/packages/workspace-1');
 
 const runWithParam = (params = '', workspace = 'root-workspace') => {
   execSync(
-    `node ${path.join(__dirname, '../src/index.js')} --root-workspace=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`,
+    `node ${path.join(__dirname, '../src/index.js')} --project-folder=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`,
   );
 };
 
@@ -33,7 +34,7 @@ describe('full cycle of isolated', () => {
       'workspaces-src-less-prod',
       'yarn.lock',
     ]);
-    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`).toString()).toEqual('workspaces-experimental true');
+    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`).toString()).toEqual('hola');
 
     const listOfAllWorkspaces = [
       'workspace-1',
@@ -96,6 +97,7 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace-4',
     ]);
 
+    expect(fs.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, { encoding:'utf-8' })).toEqual('hola');
     expect(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).toMatchSnapshot();
   });
 
@@ -115,8 +117,8 @@ describe('full cycle of isolated', () => {
     expect(fse.existsSync(`${workspaceFolder}/_isolated_`)).toEqual(false);
   });
 
-  test('--disable-yarnrc:  disable yarnrc creation', async () => {
-    runWithParam('--disable-yarnrc');
+  test('--yarnrc-disable: disable yarnrc creation', async () => {
+    runWithParam('--yarnrc-disable');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
     expect(folder).toEqual([
@@ -127,6 +129,23 @@ describe('full cycle of isolated', () => {
       'workspaces-src-less-prod',
       'yarn.lock',
     ]);
+  });
+
+  test('--yarnrc-generate: generate .yarnrc', async () => {
+    runWithParam('--yarnrc-generate');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock',
+    ]);
+
+    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, {encoding: 'utf-8'})).toEqual('workspaces-experimental true');
   });
 
   test('--disable-yarn-lock:  disable yarn lock creation', async () => {

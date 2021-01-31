@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
-    "fs-extra": "^9.0.1",
+    "fs-extra": "^9.1.0",
     "fs-readdir-recursive": "1.1.0"
   },
   "devDependencies": {
