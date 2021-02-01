@@ -4,10 +4,10 @@ const fs = require('fs');
 
 let [, , ...cliParams] = process.argv;
 
-function getParam(param, value = false) {
-  const p = cliParams.find(p => p.includes(param));
+function getParam(name, value = false) {
+  const p = cliParams.find(p => p.includes(name));
 
-  cliParams = cliParams.filter(p => !p.includes(param));
+  cliParams = cliParams.filter(p => !p.includes(name));
 
   if (value) return p ? p.split('=')[1] : false;
 
@@ -16,20 +16,25 @@ function getParam(param, value = false) {
 
 if (getParam('--help')) printHelp();
 
-const ignoreYarnLock = getParam('--disable-yarn-lock');
-const ignoreYarnrc = getParam('--disable-yarnrc');
-const createSrcLessFolder = !getParam('--disable-src-less-folder');
-const createSrcLessProdFolder = !getParam('--disable-src-less-prod-folder');
-const includeWithSrcLess = getParam('--includes-with-src-less', true);
-const includeWithSrcLessProd = getParam('--includes-with-src-less-prod', true);
-const createJsonFile = !getParam('--disable-json-file');
-const createJsonProdFile = !getParam('--disable-json-prod-file');
-const outPutFolder = getParam('--output-folder', true) || '_isolated_';
-const copyOnlyFiles = getParam('--copy-only-files');
-const rootWorkspace = getParam('--root-workspace', true) || path.resolve();
-const ignoreCopyRegex = getParam('--ignore-copy-regex', true);
-const copySrcFiles = getParam('--copy-src-files');
+const yarnrcDisable = getParam('--yarnrc-disable');
+const yarnrcGenerate = getParam('--yarnrc-generate');
+const yarnLockDisable = getParam('--yarn-lock-disable');
+const srcLessDisable = getParam('--src-less-disable');
+const srcLessGlob = getParam('--src-less-glob', true);
+const srcLessProdDisable = getParam('--src-less-prod-disable');
+const srcLessProdGlob = getParam('--src-less-prod-glob', true);
+const jsonFileDisable = getParam('--json-file-disable');
+const jsonFileProdDisable = getParam('--json-file-prod-disable');
+const outputFolder = getParam('--output-folder', true) || '_isolated_';
+const srcFilesEnable = getParam('--src-files-enable');
+const srcFilesPackageJson = getParam('--src-files-package-json');
+const srcFilesIncludeGlob = getParam('--src-files-include-glob', true);
+const srcFilesExcludeGlob = getParam('--src-files-exclude-glob', true);
+const workspacesExcludeGlob = getParam('--workspaces-exclude-glob', true);
+const projectRoot = getParam('--project-folder', true) || path.resolve();
+
 let max = getParam('--max-depth', true) || 5;
+
 const getWorkspacesRoot = dir => {
   const pkg = path.join(dir, 'package.json');
   let found = false;
@@ -46,60 +51,113 @@ const getWorkspacesRoot = dir => {
   return getWorkspacesRoot(path.join(dir, '../'));
 };
 
-const rootDir = getWorkspacesRoot(rootWorkspace);
+const rootDir = getWorkspacesRoot(projectRoot);
 
-const allWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
+const projectWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
 
 const workspaceName = (function getWorkspaceName() {
   const [targetWorkspaceName] = cliParams;
 
   if (!targetWorkspaceName) {
-    console.log('please provide workspace name of folder');
+    console.log('please provide workspace name or folder');
     process.exit(1);
   }
 
-  if (allWorkspaces[targetWorkspaceName]) return targetWorkspaceName;
+  if (projectWorkspaces[targetWorkspaceName]) return targetWorkspaceName;
 
-  let workspaceName = Object.keys(allWorkspaces).find(workspace => allWorkspaces[workspace].location === targetWorkspaceName);
+  let workspaceName = Object.keys(projectWorkspaces).find(
+    workspace => projectWorkspaces[workspace].location === targetWorkspaceName,
+  );
 
   if (workspaceName) return workspaceName;
 
-  console.log(`no such workspace of folder ${targetWorkspaceName}`);
+  console.log(`no such workspace or folder: ${targetWorkspaceName}`);
   process.exit(1);
 })();
 
-for (let key in allWorkspaces) {
-  allWorkspaces[key].location = path.join(rootDir, allWorkspaces[key].location);
-  allWorkspaces[key].pkgJsonLocation = path.join(allWorkspaces[key].location, 'package.json');
-  allWorkspaces[key].pkgJson = JSON.parse(fs.readFileSync(allWorkspaces[key].pkgJsonLocation));
-  if (allWorkspaces[key].pkgJson.dependencies && allWorkspaces[key].pkgJson.dependencies[workspaceName])
-    delete allWorkspaces[key].pkgJson.dependencies[workspaceName];
+for (let key in projectWorkspaces) {
+  projectWorkspaces[key].location = path.join(rootDir, projectWorkspaces[key].location);
+  projectWorkspaces[key].pkgJsonLocation = path.join(projectWorkspaces[key].location, 'package.json');
+  projectWorkspaces[key].pkgJson = JSON.parse(fs.readFileSync(projectWorkspaces[key].pkgJsonLocation));
+  if (projectWorkspaces[key].pkgJson.dependencies && projectWorkspaces[key].pkgJson.dependencies[workspaceName])
+    delete projectWorkspaces[key].pkgJson.dependencies[workspaceName];
 
-  if (allWorkspaces[key].pkgJson.devDependencies && allWorkspaces[key].pkgJson.devDependencies[workspaceName])
-    delete allWorkspaces[key].pkgJson.devDependencies[workspaceName];
+  if (projectWorkspaces[key].pkgJson.devDependencies && projectWorkspaces[key].pkgJson.devDependencies[workspaceName])
+    delete projectWorkspaces[key].pkgJson.devDependencies[workspaceName];
+
+  if (srcFilesPackageJson) projectWorkspaces[key].inclueFiles = projectWorkspaces[key].pkgJson.files || [];
 }
+
+const workspaceData = projectWorkspaces[workspaceName];
+
+const prodWorkspaces = (function getProdWorkspaces() {
+  const list = [];
+  const recursive = (dependencies = {}) => {
+    Object.keys(dependencies).forEach(depName => {
+      if (projectWorkspaces[depName] && !list.includes(depName)) {
+        list.push(depName);
+        recursive(projectWorkspaces[depName].pkgJson.dependencies);
+      }
+    });
+  };
+  recursive(workspaceData.pkgJson.dependencies);
+  return list;
+})();
+
+const devWorkspaces = (function getDevWorkspaces(prodWorkspaces) {
+  const list = [];
+  const recursive = (dependencies = {}) => {
+    Object.keys(dependencies).forEach(depName => {
+      if (projectWorkspaces[depName] && !list.includes(depName)) {
+        list.push(depName);
+        recursive(projectWorkspaces[depName].pkgJson.dependencies);
+      }
+    });
+  };
+  recursive({ ...workspaceData.pkgJson.dependencies, ...workspaceData.pkgJson.devDependencies });
+  return list.filter(w => !prodWorkspaces.includes(w));
+})(prodWorkspaces);
+
+const relatedWorkspaces = [...prodWorkspaces, ...devWorkspaces];
+
+let isolateFolder = `${workspaceData.location}/${outputFolder}`;
+let workspacesFolder = `${isolateFolder}/workspaces/`;
+let srcLessFolder = `${isolateFolder}/workspaces-src-less/`;
+let srcLessFolderProd = `${isolateFolder}/workspaces-src-less-prod/`;
 
 function printHelp() {
   console.log(`
   isolating workspace in yarn workspace project
   use:
   # yarn-isolate [options] [workspace name to isolate]
-    [--disable-yarnrc]                     wont generate .yarnrc file
-    [--disable-yarn-lock]                  wont generate yarn.lock
-    [--disable-src-less-folder]            wont create the src-less folders
-    [--disable-src-less-prod-folder]       wont create the prod src-less folder
-    [--includes-with-src-less={value}]      extra files to copy to src-less folder
-    [--includes-with-src-less-prod={value}] extra files to copy to src-less folder
-    [--disable-json-file]                  wont create json file
-    [--disable-json-prod-file]             wont create json prod json file
-    [--output-folder]                      folder to create all generated files (default to _isolated_)
-    [--copy-src-files]                     include root workspace src files in the isolated folder
-  * [--copy-files-only]                    include only files listed on the file key in the package.json
-    [--ignore-copy-regex={value}]          ignore regex when copy workspaces (default: node_modules and selected output-folder)
-    [--max-depth]                          by default we search recursively project-root 5 folder
-    [--workspace-folder={value}]           absolute path to project-root (default will look for the root)
 
-  * in progress
+    // yarn files
+    [--yarnrc-disable]                     disable copy or generate .yarnrc file
+    [--yarnrc-generate]                    generate yarnrc with workspaces flag enable
+    [--yarn-lock-disable]                  disable generate yarn.lock file
+
+    // src-less folder
+    [--src-less-disable]                   disable create of the src-less folders
+    [--src-less-glob={value}]             extra files to copy to src-less folder
+
+    // src-less-prod folder
+    [--src-less-prod-disable]              disable create the prod src-less folder
+    [--src-less-prod-glob={value}]        extra files to copy to src-less folder
+
+    // main workspace
+    [--json-file-disable]                  disable create json file
+    [--json-file-prod-disable]             disable create json prod json file (withtout dev-dependencies)
+    [--output-folder]                      folder to create all generated files (default to _isolated_)
+
+    // files
+    [--src-files-enable]                   copy all src file of main worksapce
+    [--src-files-exclude-glob={value}]    copy src file of main workspace by glob
+    [--src-files-include-glob={value}]    copy src file of main workspace by glob
+    [--workspaces-exclude-glob={value}]   exclude glob when copy workspaces (default: node_modules and selected output-folder)
+
+    // workspaces folder configuration
+    [--max-depth]                          by default we search recursively project-root 5 folder
+    [--project-folder={value}]             absolute path to project-root (default will look for the root)
 `);
 
   process.exit(0);
@@ -107,18 +165,29 @@ function printHelp() {
 
 module.exports = {
   rootDir,
-  ignoreYarnrc,
   workspaceName,
-  allWorkspaces,
-  ignoreYarnLock,
-  createSrcLessFolder,
-  createSrcLessProdFolder,
-  includeWithSrcLess,
-  includeWithSrcLessProd,
-  outPutFolder,
-  createJsonFile,
-  createJsonProdFile,
-  copyOnlyFiles,
-  ignoreCopyRegex,
-  copySrcFiles,
+  workspaceData,
+  prodWorkspaces,
+  devWorkspaces,
+  relatedWorkspaces,
+  projectWorkspaces,
+  yarnrcDisable,
+  yarnrcGenerate,
+  yarnLockDisable,
+  srcLessDisable,
+  srcLessGlob,
+  srcLessProdDisable,
+  srcLessProdGlob,
+  jsonFileDisable,
+  jsonFileProdDisable,
+  outputFolder,
+  srcFilesEnable,
+  srcFilesPackageJson,
+  srcFilesIncludeGlob,
+  srcFilesExcludeGlob,
+  workspacesExcludeGlob,
+  isolateFolder,
+  workspacesFolder,
+  srcLessFolder,
+  srcLessFolderProd,
 };
