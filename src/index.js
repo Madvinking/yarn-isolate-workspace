@@ -17,15 +17,15 @@ const {
   yarnrcGenerate,
   yarnLockDisable,
   srcLessDisable,
-  srcLessRegex,
+  srcLessGlob,
   srcLessProdDisable,
-  srcLessProdRegex,
+  srcLessProdGlob,
   jsonFileDisable,
   jsonFileProdDisable,
   srcFilesEnable,
-  srcFilesIncludeRegex,
-  srcFilesExcludeRegex,
-  workspacesExcludeRegex,
+  srcFilesIncludeGlob,
+  srcFilesExcludeGlob,
+  workspacesExcludeGlob,
   isolateFolder,
   workspacesFolder,
   srcLessFolder,
@@ -38,8 +38,8 @@ function createDestinationFolders() {
   if (fs.existsSync(isolateFolder)) fs.rmdirSync(isolateFolder, { recursive: true });
   fs.mkdirSync(workspacesFolder, { recursive: true });
 
-  if (srcFilesExcludeRegex) {
-    const files = glob.sync(srcFilesExcludeRegex, { cwd: workspaceData.location, absolute: true, ignore: ignorePattterns });
+  if (srcFilesExcludeGlob) {
+    const files = glob.sync(srcFilesExcludeGlob, { cwd: workspaceData.location, absolute: true, ignore: ignorePattterns });
 
     const filesToCopy = readDirSync(
       workspaceData.location,
@@ -49,8 +49,8 @@ function createDestinationFolders() {
     filesToCopy.forEach(file =>
       fse.copySync(path.join(workspaceData.location, file), path.join(isolateFolder, file), { preserveTimestamps: true }),
     );
-  } else if (srcFilesIncludeRegex) {
-    const files = glob.sync(srcFilesIncludeRegex, { cwd: workspaceData.location, absolute: true, ignore: ignorePattterns });
+  } else if (srcFilesIncludeGlob) {
+    const files = glob.sync(srcFilesIncludeGlob, { cwd: workspaceData.location, absolute: true, ignore: ignorePattterns });
 
     files.forEach(file =>
       fse.copySync(file, path.join(isolateFolder, path.relative(workspaceData.location, file)), { preserveTimestamps: true }),
@@ -75,17 +75,20 @@ function resolveWorkspacesNewLocation() {
     subWorkspace.pkgJson.devDependencies = {};
     fs.writeFileSync(subWorkspace.pkgJsonLocation, JSON.stringify(subWorkspace.pkgJson, null, 2));
 
-    fse.copySync(subWorkspace.location, subWorkspace.newLocation, {
-      preserveTimestamps: true,
-      filter: name => {
-        if (name.includes('package.json')) return false;
-        if (name.includes('node_modules')) return false;
-        if (name.includes(outputFolder)) return false;
-        if (fs.lstatSync(name).isDirectory()) return true;
-        if (workspacesExcludeRegex && new RegExp(workspacesExcludeRegex).test(name)) return false;
-        return true;
-      },
-    });
+    const files = workspacesExcludeGlob
+      ? glob.sync(workspacesExcludeGlob, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns })
+      : [];
+
+    const filesToCopy = readDirSync(
+      subWorkspace.location,
+      (name, i, dir) => !ignorePattterns.includes(name) && !files.includes(`${dir}/${name}`),
+    );
+
+    filesToCopy.forEach(file =>
+      fse.copySync(path.join(subWorkspace.location, file), path.join(subWorkspace.newLocation, file), {
+        preserveTimestamps: true,
+      }),
+    );
   });
 }
 
@@ -101,8 +104,8 @@ function copySrcLessToNewLocation() {
       fs.writeFileSync(path.join(subWorkspaceSrcLessFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2), {
         flag: 'wx',
       });
-      if (srcLessRegex) {
-        const files = glob.sync(srcLessRegex, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns });
+      if (srcLessGlob) {
+        const files = glob.sync(srcLessGlob, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns });
 
         files.forEach(file =>
           fse.copySync(file, path.join(subWorkspaceSrcLessFolder, path.relative(subWorkspace.location, file)), {
@@ -127,8 +130,8 @@ function copySrcLessProdToNewLocation() {
         flag: 'wx',
       });
 
-      if (srcLessProdRegex) {
-        const files = glob.sync(srcLessProdRegex, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns });
+      if (srcLessProdGlob) {
+        const files = glob.sync(srcLessProdGlob, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns });
 
         files.forEach(file =>
           fse.copySync(file, path.join(subWorkspaceSrcLessProdFolder, path.relative(subWorkspace.location, file)), {

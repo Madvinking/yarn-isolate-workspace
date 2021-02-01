@@ -20,17 +20,17 @@ const yarnrcDisable = getParam('--yarnrc-disable');
 const yarnrcGenerate = getParam('--yarnrc-generate');
 const yarnLockDisable = getParam('--yarn-lock-disable');
 const srcLessDisable = getParam('--src-less-disable');
-const srcLessRegex = getParam('--src-less-regex', true);
+const srcLessGlob = getParam('--src-less-glob', true);
 const srcLessProdDisable = getParam('--src-less-prod-disable');
-const srcLessProdRegex = getParam('--src-less-prod-regex', true);
+const srcLessProdGlob = getParam('--src-less-prod-glob', true);
 const jsonFileDisable = getParam('--json-file-disable');
 const jsonFileProdDisable = getParam('--json-file-prod-disable');
 const outputFolder = getParam('--output-folder', true) || '_isolated_';
 const srcFilesEnable = getParam('--src-files-enable');
 const srcFilesPackageJson = getParam('--src-files-package-json');
-const srcFilesIncludeRegex = getParam('--src-files-include-regex', true);
-const srcFilesExcludeRegex = getParam('--src-files-exclude-regex', true);
-const workspacesExcludeRegex = getParam('--workspaces-exclude-regex', true);
+const srcFilesIncludeGlob = getParam('--src-files-include-glob', true);
+const srcFilesExcludeGlob = getParam('--src-files-exclude-glob', true);
+const workspacesExcludeGlob = getParam('--workspaces-exclude-glob', true);
 const projectRoot = getParam('--project-folder', true) || path.resolve();
 
 let max = getParam('--max-depth', true) || 5;
@@ -138,11 +138,11 @@ function printHelp() {
 
     // src-less folder
     [--src-less-disable]                   disable create of the src-less folders
-    [--src-less-regex={value}]             extra files to copy to src-less folder
+    [--src-less-glob={value}]             extra files to copy to src-less folder
 
     // src-less-prod folder
     [--src-less-prod-disable]              disable create the prod src-less folder
-    [--src-less-prod-regex={value}]        extra files to copy to src-less folder
+    [--src-less-prod-glob={value}]        extra files to copy to src-less folder
 
     // main workspace
     [--json-file-disable]                  disable create json file
@@ -151,9 +151,9 @@ function printHelp() {
 
     // files
     [--src-files-enable]                   copy all src file of main worksapce
-    [--src-files-exclude-regex={value}]    copy src file of main workspace by regex
-    [--src-files-include-regex={value}]    copy src file of main workspace by regex
-    [--workspaces-exclude-regex={value}]   exclude regex when copy workspaces (default: node_modules and selected output-folder)
+    [--src-files-exclude-glob={value}]    copy src file of main workspace by glob
+    [--src-files-include-glob={value}]    copy src file of main workspace by glob
+    [--workspaces-exclude-glob={value}]   exclude glob when copy workspaces (default: node_modules and selected output-folder)
 
     // workspaces folder configuration
     [--max-depth]                          by default we search recursively project-root 5 folder
@@ -175,17 +175,17 @@ module.exports = {
   yarnrcGenerate,
   yarnLockDisable,
   srcLessDisable,
-  srcLessRegex,
+  srcLessGlob,
   srcLessProdDisable,
-  srcLessProdRegex,
+  srcLessProdGlob,
   jsonFileDisable,
   jsonFileProdDisable,
   outputFolder,
   srcFilesEnable,
   srcFilesPackageJson,
-  srcFilesIncludeRegex,
-  srcFilesExcludeRegex,
-  workspacesExcludeRegex,
+  srcFilesIncludeGlob,
+  srcFilesExcludeGlob,
+  workspacesExcludeGlob,
   isolateFolder,
   workspacesFolder,
   srcLessFolder,

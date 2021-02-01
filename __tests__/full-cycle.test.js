@@ -224,23 +224,23 @@ describe('full cycle of isolated', () => {
 
   test('should filter by regex when copy files (default _isolated_ & node_modules)', async () => {
     runWithParam('--output-folder=_isolated-other_', 'workspace-1');
-    runWithParam(`--output-folder=_isolated-other_ --workspaces-exclude-regex='src.js'`);
+    runWithParam(`--output-folder=_isolated-other_ --workspaces-exclude-glob='src.js'`);
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_/workspaces/packages/workspace-1`);
 
     expect(folder).toEqual(['nestedFolder', 'package.json']);
   });
 
-  test('--src-less-regex: should include in src-less param', async () => {
-    runWithParam(`--src-less-regex='src.js'`);
+  test('--src-less-glob: should include in src-less param', async () => {
+    runWithParam(`--src-less-glob='src.js'`);
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1`);
 
     expect(folder).toEqual(['package.json', 'src.js']);
   });
 
-  test('--src-less-prod-regex: should include in src-less param nested', async () => {
-    runWithParam(`--src-less-prod-regex='nestedFolder/nestedFile.js'`);
+  test('--src-less-prod-glob: should include in src-less param nested', async () => {
+    runWithParam(`--src-less-prod-glob='nestedFolder/nestedFile.js'`);
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less-prod/packages/workspace-1`);
 
@@ -263,16 +263,16 @@ describe('full cycle of isolated', () => {
     ]);
   });
 
-  test('--src-files-exclude-regex: should exclude main workspace recived values', async () => {
-    runWithParam("--src-files-exclude-regex='no.js' --src-less-disable --yarn-lock-disable");
+  test('--src-files-exclude-glob: should exclude main workspace recived values', async () => {
+    runWithParam("--src-files-exclude-glob='no.js' --src-less-disable --yarn-lock-disable");
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
 
     expect(folder).toEqual(['.yarnrc', 'package-prod.json', 'package.json', 'src.js', 'workspaces', 'workspaces-src-less-prod']);
   });
 
-  test('--src-files-include-regex: should exclude main workspace recived values', async () => {
-    runWithParam("--src-files-include-regex='src.js' --src-less-disable --yarn-lock-disable");
+  test('--src-files-include-glob: should exclude main workspace recived values', async () => {
+    runWithParam("--src-files-include-glob='src.js' --src-less-disable --yarn-lock-disable");
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
 
