@@ -23,7 +23,6 @@ const {
   jsonFileDisable,
   jsonFileProdDisable,
   srcFilesEnable,
-  // srcFilesPackageJson,
   srcFilesIncludeRegex,
   srcFilesExcludeRegex,
   workspacesExcludeRegex,
@@ -62,8 +61,6 @@ function createDestinationFolders() {
       fse.copySync(path.join(workspaceData.location, file), path.join(isolateFolder, file), { preserveTimestamps: true }),
     );
   }
-
-  // TODO:  srcFilesPackageJson
 }
 
 function resolveWorkspacesNewLocation() {

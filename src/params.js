@@ -153,14 +153,11 @@ function printHelp() {
     [--src-files-enable]                   copy all src file of main worksapce
     [--src-files-exclude-regex={value}]    copy src file of main workspace by regex
     [--src-files-include-regex={value}]    copy src file of main workspace by regex
-    [--src-files-package-json]             copy the files listed in the 'file" of package.json
     [--workspaces-exclude-regex={value}]   exclude regex when copy workspaces (default: node_modules and selected output-folder)
 
     // workspaces folder configuration
     [--max-depth]                          by default we search recursively project-root 5 folder
     [--project-folder={value}]             absolute path to project-root (default will look for the root)
-
-  * in progress
 `);
 
   process.exit(0);
