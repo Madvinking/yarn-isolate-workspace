@@ -7,9 +7,6 @@ let workspaceFolder = path.join(__dirname, 'monoRepo/packages/root-workspace');
 let workspaceFolder1 = path.join(__dirname, 'monoRepo/packages/workspace-1');
 
 const runWithParam = (params = '', workspace = 'root-workspace') => {
-  console.log(
-    `node ${path.join(__dirname, '../src/index.js')} --project-folder=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`,
-  );
   execSync(
     `node ${path.join(__dirname, '../src/index.js')} --project-folder=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`,
   );

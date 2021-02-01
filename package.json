@@ -1,6 +1,6 @@
 {
   "name": "yarn-isolate-workspace",
-  "version": "0.1.15",
+  "version": "0.2.0",
   "description": "will isolate one yarn workspace",
   "main": "src/index.js",
   "bin": {
@@ -37,7 +37,8 @@
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
     "fs-extra": "^9.1.0",
-    "fs-readdir-recursive": "1.1.0"
+    "fs-readdir-recursive": "1.1.0",
+    "glob": "7.1.6"
   },
   "devDependencies": {
     "husky": "4.3.0",
