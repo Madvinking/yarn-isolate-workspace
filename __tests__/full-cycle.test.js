@@ -1,5 +1,5 @@
 const { execSync } = require('child_process');
-const fse = require('fs-extra')
+const fse = require('fs-extra');
 const fs = require('fs');
 const path = require('path');
 
@@ -7,6 +7,9 @@ let workspaceFolder = path.join(__dirname, 'monoRepo/packages/root-workspace');
 let workspaceFolder1 = path.join(__dirname, 'monoRepo/packages/workspace-1');
 
 const runWithParam = (params = '', workspace = 'root-workspace') => {
+  console.log(
+    `node ${path.join(__dirname, '../src/index.js')} --project-folder=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`,
+  );
   execSync(
     `node ${path.join(__dirname, '../src/index.js')} --project-folder=${path.join(__dirname, 'monoRepo')} ${workspace} ${params}`,
   );
@@ -97,7 +100,7 @@ describe('full cycle of isolated', () => {
       'workspaces/packages/workspace-4',
     ]);
 
-    expect(fs.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, { encoding:'utf-8' })).toEqual('hola');
+    expect(fs.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, { encoding: 'utf-8' })).toEqual('hola');
     expect(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString()).toMatchSnapshot();
   });
 
@@ -145,11 +148,13 @@ describe('full cycle of isolated', () => {
       'yarn.lock',
     ]);
 
-    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, {encoding: 'utf-8'})).toEqual('workspaces-experimental true');
+    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/.yarnrc`, { encoding: 'utf-8' })).toEqual(
+      'workspaces-experimental true',
+    );
   });
 
-  test.only('--disable-yarn-lock:  disable yarn lock creation', async () => {
-    runWithParam('--disable-yarn-lock');
+  test('--yarn-lock-disable: disable yarn lock creation', async () => {
+    runWithParam('--yarn-lock-disable');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
     expect(folder).toEqual([
@@ -162,8 +167,8 @@ describe('full cycle of isolated', () => {
     ]);
   });
 
-  test('--disable-src-less-folder: disable src less folder creation', async () => {
-    runWithParam('--disable-src-less-folder');
+  test('--src-less-disable: disable src less folder creation', async () => {
+    runWithParam('--src-less-disable');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
     expect(folder).toEqual([
@@ -176,15 +181,15 @@ describe('full cycle of isolated', () => {
     ]);
   });
 
-  test('--disable-src-less-prod-folder: disable src less prod folder creation', async () => {
-    runWithParam('--disable-src-less-prod-folder');
+  test('--src-less-prod-disable]: disable src less prod folder creation', async () => {
+    runWithParam('--src-less-prod-disable]');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
     expect(folder).toEqual(['.yarnrc', 'package-prod.json', 'package.json', 'workspaces', 'workspaces-src-less', 'yarn.lock']);
   });
 
-  test('--disable-json-file: disable json file creation', async () => {
-    runWithParam('--disable-json-file');
+  test('--json-file-disable: disable json file creation', async () => {
+    runWithParam('--json-file-disable');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
     expect(folder).toEqual([
@@ -197,8 +202,8 @@ describe('full cycle of isolated', () => {
     ]);
   });
 
-  test('--disable-json-prod-file: disable json prod file creation', async () => {
-    runWithParam('--disable-json-prod-file');
+  test('--json-file-prod-disable: disable json prod file creation', async () => {
+    runWithParam('--json-file-prod-disable');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_`);
     expect(folder).toEqual([
@@ -222,31 +227,55 @@ describe('full cycle of isolated', () => {
 
   test('should filter by regex when copy files (default _isolated_ & node_modules)', async () => {
     runWithParam('--output-folder=_isolated-other_', 'workspace-1');
-    runWithParam(`--output-folder=_isolated-other_ --ignore-copy-regex='src.js|node_modules'`);
+    runWithParam(`--output-folder=_isolated-other_ --workspaces-exclude-regex='src.js'`);
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated-other_/workspaces/packages/workspace-1`);
 
-    expect(folder).toEqual(['_isolated-other_', 'nestedFolder', 'package.json']);
+    expect(folder).toEqual(['nestedFolder', 'package.json']);
   });
 
-  test('should include in src-less param', async () => {
-    runWithParam(`--includes-with-src-less='src.js'`);
+  test('--src-less-regex: should include in src-less param', async () => {
+    runWithParam(`--src-less-regex='src.js'`);
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1`);
 
     expect(folder).toEqual(['package.json', 'src.js']);
   });
 
-  test('should include in src-less param nested', async () => {
-    runWithParam(`--includes-with-src-less='nestedFolder/nestedFile.js'`);
+  test('--src-less-prod-regex: should include in src-less param nested', async () => {
+    runWithParam(`--src-less-prod-regex='nestedFolder/nestedFile.js'`);
 
-    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1`);
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/workspaces-src-less-prod/packages/workspace-1`);
 
     expect(folder).toEqual(['nestedFolder', 'package.json']);
   });
 
-  test('should include main workspace src files', async () => {
-    runWithParam('--copy-src-files --disable-src-less-folder --disable-yarn-lock');
+  test('--src-files-enable: should include main workspace src files', async () => {
+    runWithParam('--src-files-enable --src-less-disable --yarn-lock-disable');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
+
+    expect(folder).toEqual([
+      '.yarnrc',
+      'no.js',
+      'package-prod.json',
+      'package.json',
+      'src.js',
+      'workspaces',
+      'workspaces-src-less-prod',
+    ]);
+  });
+
+  test('--src-files-exclude-regex: should exclude main workspace recived values', async () => {
+    runWithParam("--src-files-exclude-regex='no.js' --src-less-disable --yarn-lock-disable");
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
+
+    expect(folder).toEqual(['.yarnrc', 'package-prod.json', 'package.json', 'src.js', 'workspaces', 'workspaces-src-less-prod']);
+  });
+
+  test('--src-files-include-regex: should exclude main workspace recived values', async () => {
+    runWithParam("--src-files-include-regex='src.js' --src-less-disable --yarn-lock-disable");
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
 

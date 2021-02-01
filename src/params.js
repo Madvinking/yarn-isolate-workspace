@@ -20,9 +20,9 @@ const yarnrcDisable = getParam('--yarnrc-disable');
 const yarnrcGenerate = getParam('--yarnrc-generate');
 const yarnLockDisable = getParam('--yarn-lock-disable');
 const srcLessDisable = getParam('--src-less-disable');
-const srcLessFilesRegex = getParam('--src-less-files-regex', true);
-const srcLessProdDisable = getParam('--src-less-prod-disable')
-const srcLessProdFilesRegex = getParam('--src-less-prod-files-regex', true);
+const srcLessRegex = getParam('--src-less-regex', true);
+const srcLessProdDisable = getParam('--src-less-prod-disable');
+const srcLessProdRegex = getParam('--src-less-prod-regex', true);
 const jsonFileDisable = getParam('--json-file-disable');
 const jsonFileProdDisable = getParam('--json-file-prod-disable');
 const outputFolder = getParam('--output-folder', true) || '_isolated_';
@@ -30,7 +30,7 @@ const srcFilesEnable = getParam('--src-files-enable');
 const srcFilesPackageJson = getParam('--src-files-package-json');
 const srcFilesIncludeRegex = getParam('--src-files-include-regex', true);
 const srcFilesExcludeRegex = getParam('--src-files-exclude-regex', true);
-const workspacesExcludeFiles = getParam('--workspaces-exclude-files', true);
+const workspacesExcludeRegex = getParam('--workspaces-exclude-regex', true);
 const projectRoot = getParam('--project-folder', true) || path.resolve();
 
 let max = getParam('--max-depth', true) || 5;
@@ -65,7 +65,9 @@ const workspaceName = (function getWorkspaceName() {
 
   if (projectWorkspaces[targetWorkspaceName]) return targetWorkspaceName;
 
-  let workspaceName = Object.keys(projectWorkspaces).find(workspace => projectWorkspaces[workspace].location === targetWorkspaceName);
+  let workspaceName = Object.keys(projectWorkspaces).find(
+    workspace => projectWorkspaces[workspace].location === targetWorkspaceName,
+  );
 
   if (workspaceName) return workspaceName;
 
@@ -114,7 +116,7 @@ const devWorkspaces = (function getDevWorkspaces(prodWorkspaces) {
   };
   recursive({ ...workspaceData.pkgJson.dependencies, ...workspaceData.pkgJson.devDependencies });
   return list.filter(w => !prodWorkspaces.includes(w));
-})(prodWorkspaces)
+})(prodWorkspaces);
 
 const relatedWorkspaces = [...prodWorkspaces, ...devWorkspaces];
 
@@ -131,16 +133,16 @@ function printHelp() {
 
     // yarn files
     [--yarnrc-disable]                     disable copy or generate .yarnrc file
-    [--yarnrc-generate]                    generate yarnrc with workspaces flag enable instaed of copy exsiting
+    [--yarnrc-generate]                    generate yarnrc with workspaces flag enable
     [--yarn-lock-disable]                  disable generate yarn.lock file
 
     // src-less folder
-    [--src-less-disable]                  disable create of the src-less folders
-    [--src-less-files-regex={value}]      extra files to copy to src-less folder
+    [--src-less-disable]                   disable create of the src-less folders
+    [--src-less-regex={value}]             extra files to copy to src-less folder
 
     // src-less-prod folder
-    [--src-less-prod-disable]             disable create the prod src-less folder
-    [--src-less-prod-files-regex={value}] extra files to copy to src-less folder
+    [--src-less-prod-disable]              disable create the prod src-less folder
+    [--src-less-prod-regex={value}]        extra files to copy to src-less folder
 
     // main workspace
     [--json-file-disable]                  disable create json file
@@ -152,7 +154,7 @@ function printHelp() {
     [--src-files-exclude-regex={value}]    copy src file of main workspace by regex
     [--src-files-include-regex={value}]    copy src file of main workspace by regex
     [--src-files-package-json]             copy the files listed in the 'file" of package.json
-    [--workspaces-exclude-files={value}]    exclude regex when copy workspaces (default: node_modules and selected output-folder)
+    [--workspaces-exclude-regex={value}]   exclude regex when copy workspaces (default: node_modules and selected output-folder)
 
     // workspaces folder configuration
     [--max-depth]                          by default we search recursively project-root 5 folder
@@ -176,9 +178,9 @@ module.exports = {
   yarnrcGenerate,
   yarnLockDisable,
   srcLessDisable,
-  srcLessFilesRegex,
+  srcLessRegex,
   srcLessProdDisable,
-  srcLessProdFilesRegex,
+  srcLessProdRegex,
   jsonFileDisable,
   jsonFileProdDisable,
   outputFolder,
@@ -186,7 +188,7 @@ module.exports = {
   srcFilesPackageJson,
   srcFilesIncludeRegex,
   srcFilesExcludeRegex,
-  workspacesExcludeFiles,
+  workspacesExcludeRegex,
   isolateFolder,
   workspacesFolder,
   srcLessFolder,

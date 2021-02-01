@@ -2,10 +2,12 @@
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
+const readDirSync = require('fs-readdir-recursive');
 const lockfile = require('@yarnpkg/lockfile');
-
+const glob = require('glob');
 const {
   rootDir,
+  outputFolder,
   workspaceData,
   prodWorkspaces,
   devWorkspaces,
@@ -15,48 +17,53 @@ const {
   yarnrcGenerate,
   yarnLockDisable,
   srcLessDisable,
-  srcLessFilesRegex,
+  srcLessRegex,
   srcLessProdDisable,
-  srcLessProdFilesRegex,
+  srcLessProdRegex,
   jsonFileDisable,
   jsonFileProdDisable,
   srcFilesEnable,
-  srcFilesPackageJson,
+  // srcFilesPackageJson,
   srcFilesIncludeRegex,
   srcFilesExcludeRegex,
-  workspacesExcludeFiles,
+  workspacesExcludeRegex,
   isolateFolder,
   workspacesFolder,
   srcLessFolder,
   srcLessFolderProd,
 } = require('./params');
 
+const ignorePattterns = ['.', 'package.json', 'node_modules', outputFolder];
+
 function createDestinationFolders() {
   if (fs.existsSync(isolateFolder)) fs.rmdirSync(isolateFolder, { recursive: true });
   fs.mkdirSync(workspacesFolder, { recursive: true });
 
-  if (srcFilesEnable || srcFilesIncludeRegex || srcFilesExcludeRegex) {
-    fse.copySync(workspacesFolder, isolateFolder, {
-      preserveTimestamps: true,
-      filter: name => {
-        if (name.includes('package.json')) return false;
-        if (name.includes('node_modules')) return false;
-        if (name.includes(isolateFolder)) return false;
-        if (srcFilesIncludeRegex) {
-          if (new RegExp(srcFilesIncludeRegex).test(name)) return true;
-          return false;
-        } else if (srcFilesExcludeRegex) {
-          if (new RegExp(srcFilesExcludeRegex).test(name)) return false;
-          return true;
-        } else  {
-          return true
-        }
-      },
-    });
+  if (srcFilesExcludeRegex) {
+    const files = glob.sync(srcFilesExcludeRegex, { cwd: workspaceData.location, absolute: true, ignore: ignorePattterns });
+
+    const filesToCopy = readDirSync(
+      workspaceData.location,
+      (name, i, dir) => !ignorePattterns.includes(name) && !files.includes(`${dir}/${name}`),
+    );
+
+    filesToCopy.forEach(file =>
+      fse.copySync(path.join(workspaceData.location, file), path.join(isolateFolder, file), { preserveTimestamps: true }),
+    );
+  } else if (srcFilesIncludeRegex) {
+    const files = glob.sync(srcFilesIncludeRegex, { cwd: workspaceData.location, absolute: true, ignore: ignorePattterns });
+
+    files.forEach(file =>
+      fse.copySync(file, path.join(isolateFolder, path.relative(workspaceData.location, file)), { preserveTimestamps: true }),
+    );
+  } else if (srcFilesEnable) {
+    const filesToCopy = readDirSync(workspaceData.location, name => !ignorePattterns.includes(name));
+    filesToCopy.forEach(file =>
+      fse.copySync(path.join(workspaceData.location, file), path.join(isolateFolder, file), { preserveTimestamps: true }),
+    );
   }
 
   // TODO:  srcFilesPackageJson
-
 }
 
 function resolveWorkspacesNewLocation() {
@@ -76,12 +83,12 @@ function resolveWorkspacesNewLocation() {
       filter: name => {
         if (name.includes('package.json')) return false;
         if (name.includes('node_modules')) return false;
-        if (name.includes(isolateFolder)) return false;
-        if (workspacesExcludeFiles && new RegExp(workspacesExcludeFiles).test(name)) return false;
-        return true
+        if (name.includes(outputFolder)) return false;
+        if (fs.lstatSync(name).isDirectory()) return true;
+        if (workspacesExcludeRegex && new RegExp(workspacesExcludeRegex).test(name)) return false;
+        return true;
       },
     });
-
   });
 }
 
@@ -94,16 +101,17 @@ function copySrcLessToNewLocation() {
       const subWorkspaceSrcLessFolder = path.join(srcLessFolder, relativePath);
       fs.mkdirSync(subWorkspaceSrcLessFolder, { recursive: true });
 
-      fs.writeFileSync(path.join(subWorkspaceSrcLessFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2), { flag: 'wx' });
+      fs.writeFileSync(path.join(subWorkspaceSrcLessFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2), {
+        flag: 'wx',
+      });
+      if (srcLessRegex) {
+        const files = glob.sync(srcLessRegex, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns });
 
-      if (srcLessFilesRegex) {
-        fse.copySync(subWorkspace.location, subWorkspaceSrcLessFolder, {
-          preserveTimestamps: true,
-          filter: name => {
-            if (new RegExp(srcLessFilesRegex).test(name)) return true;
-            return false
-          },
-        });
+        files.forEach(file =>
+          fse.copySync(file, path.join(subWorkspaceSrcLessFolder, path.relative(subWorkspace.location, file)), {
+            preserveTimestamps: true,
+          }),
+        );
       }
     });
   }
@@ -118,25 +126,25 @@ function copySrcLessProdToNewLocation() {
       const subWorkspaceSrcLessProdFolder = path.join(srcLessFolderProd, relativePath);
       fs.mkdirSync(subWorkspaceSrcLessProdFolder, { recursive: true });
 
-      fs.writeFileSync(path.join(subWorkspaceSrcLessProdFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2), { flag: 'wx' });
+      fs.writeFileSync(path.join(subWorkspaceSrcLessProdFolder, 'package.json'), JSON.stringify(subWorkspace.pkgJson, null, 2), {
+        flag: 'wx',
+      });
 
-      if (srcLessProdFilesRegex) {
-        fse.copySync(subWorkspace.location, subWorkspaceSrcLessProdFolder, {
-          preserveTimestamps: true,
-          filter: name => {
-            if (new RegExp(srcLessProdFilesRegex).test(name)) return true;
-            return false
-          },
-        });
+      if (srcLessProdRegex) {
+        const files = glob.sync(srcLessProdRegex, { cwd: subWorkspace.location, absolute: true, ignore: ignorePattterns });
+
+        files.forEach(file =>
+          fse.copySync(file, path.join(subWorkspaceSrcLessProdFolder, path.relative(subWorkspace.location, file)), {
+            preserveTimestamps: true,
+          }),
+        );
       }
     });
   }
 }
 
 function createMainJsonFile() {
-  workspaceData.pkgJson.workspaces = prodWorkspaces.map(name =>
-    path.relative(isolateFolder, projectWorkspaces[name].newLocation),
-  );
+  workspaceData.pkgJson.workspaces = prodWorkspaces.map(name => path.relative(isolateFolder, projectWorkspaces[name].newLocation));
 
   let currentDevDependencies = {};
 
@@ -146,10 +154,7 @@ function createMainJsonFile() {
 
   if (!jsonFileProdDisable) {
     workspaceData.pkgJson.devDependencies = {};
-    fs.writeFileSync(
-      path.join(isolateFolder, 'package-prod.json'),
-      JSON.stringify(workspaceData.pkgJson, null, 2),
-    );
+    fs.writeFileSync(path.join(isolateFolder, 'package-prod.json'), JSON.stringify(workspaceData.pkgJson, null, 2));
   }
 
   workspaceData.pkgJson.devDependencies = currentDevDependencies;
@@ -183,7 +188,6 @@ function createYarnLock() {
 
   let { object: oldFile } = lockfile.parse(fs.readFileSync(yarnLockPath, 'utf8'));
 
-
   const dependenciesList = (function getDependencies() {
     const list = [];
     const recursive = (dependencies = {}) => {
@@ -200,7 +204,12 @@ function createYarnLock() {
     return list;
   })();
 
-  let newFile = Object.fromEntries(Object.entries(oldFile).filter(([name]) => dependenciesList.includes(name)));
+  const recuireDeps = Object.keys(oldFile).filter(name => dependenciesList.includes(name));
+
+  let newFile = recuireDeps.reduce((acc, key) => {
+    acc[key] = oldFile[key];
+    return acc;
+  }, {});
 
   fs.writeFileSync(path.join(isolateFolder, 'yarn.lock'), lockfile.stringify(newFile));
 }
