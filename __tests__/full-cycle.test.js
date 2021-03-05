@@ -278,4 +278,34 @@ describe('full cycle of isolated', () => {
 
     expect(folder).toEqual(['.yarnrc', 'package-prod.json', 'package.json', 'src.js', 'workspaces', 'workspaces-src-less-prod']);
   });
+
+  test('--src-less-sub-dev-deps: should inclue sub worksapced dev deps', async () => {
+    runWithParam('--src-less-sub-dev-deps');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
+
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock',
+    ]);
+
+    const subWorkspacePackgeJson = JSON.parse(
+      fse.readFileSync(`${workspaceFolder}/_isolated_/workspaces-src-less/packages/workspace-1/package.json`).toString(),
+    );
+
+    expect(subWorkspacePackgeJson.devDependencies).toEqual({
+      'workspace-11': '1',
+      'workspace-13': '1',
+      'workspace-15': '1',
+      'in-w1-dev-dep-1': '1',
+      'in-w1-dev-dep-2': '1',
+    });
+
+    expect(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString().includes('in-w1-dev-dep-1@1')).toEqual(true);
+  });
 });

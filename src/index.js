@@ -17,6 +17,7 @@ const {
   yarnrcGenerate,
   yarnLockDisable,
   srcLessDisable,
+  srcLessSubDev,
   srcLessGlob,
   srcLessProdDisable,
   srcLessProdGlob,
@@ -72,7 +73,7 @@ function resolveWorkspacesNewLocation() {
     subWorkspace.pkgJsonLocation = path.join(subWorkspace.newLocation, 'package.json');
     fs.mkdirSync(subWorkspace.newLocation, { recursive: true });
 
-    subWorkspace.pkgJson.devDependencies = {};
+    if (!srcLessSubDev) subWorkspace.pkgJson.devDependencies = {};
     fs.writeFileSync(subWorkspace.pkgJsonLocation, JSON.stringify(subWorkspace.pkgJson, null, 2));
 
     const files = workspacesExcludeGlob
@@ -196,7 +197,11 @@ function createYarnLock() {
         if (!projectWorkspaces[name] && !list.includes(depName)) {
           list.push(depName);
         } else if (projectWorkspaces[name]) {
-          recursive(projectWorkspaces[name].pkgJson.dependencies);
+          if (srcLessSubDev) {
+            recursive({ ...projectWorkspaces[name].pkgJson.dependencies, ...projectWorkspaces[name].pkgJson.devDependencies });
+          } else {
+            recursive(projectWorkspaces[name].pkgJson.dependencies);
+          }
         }
       });
     };

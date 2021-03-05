@@ -14,15 +14,17 @@ And will make it a root workspace to all the other copied workspaces.
 that way, you end up with an isolated project that has everything it needs under one folder
 
 ### motivation
+
 using CI/CD to get your project ready for production is extremely tricky with monorepos.
 When your monorepo gets too big, and you want to dockerized each service independently,
 you want to prevent your docker context scope from the root of the monorepo.
 And make the scope for the folder of your workspace/project/service folder.
 To achieve it, you need to copy all project dependence workspaces to this folder.
 
-
 ### example
+
 if we have a monorepo workspaces tree that looks like this:
+
 ```
 ├── workspace-1
 ├   ├── package.json
@@ -34,10 +36,12 @@ if we have a monorepo workspaces tree that looks like this:
 ├── .yarnrc
 ├── yarn.lock
 ```
+
 and workspace-1 depend on workspace-2
 after running
 `npx yarn-isolate-workspace workspace-1`
 the tree will look like this:
+
 ```
 ├── workspace-1
     ├── _isolated_
@@ -66,8 +70,10 @@ the tree will look like this:
 ```
 
 ### what did you get?
+
 the tool created a folder (with default name _isolated_)
 this folder contains:
+
   1. `workspaces` folder - include all the related workspaces and their source code (in the example workspace 2)
   2. `workspaces-src-less` folder - contain all related workspaces by only package.json files.
 *** a folder contains all the workspaces package.json (same tree as the workspaces folder).
@@ -86,18 +92,21 @@ same as before if you run yarn install with the --prod flag
   7. `yarn.lock` - if there is a 'yarn.lock' file in the root of the project,
      it will copy all relevant dependencies from it
 
-## Supported cli flags:
+## Supported cli flags
+
 we can configure the behavior of the isolated script with some params
 you want to make sure you treat the depended workspaces as 'installed modules' so filter out from them
 their dev-dependencies and test files.
+
 ```
   #### yarn-isolate [options] [workspace name to isolate]
     [--yarnrc-disable]                     disable copy or generate .yarnrc file
-    [--yarnrc-generate]                    generate yarnrc (instaed of copy the existing one)
+    [--yarnrc-generate]                    generate yarnrc (instead of copy the existing one)
     [--yarn-lock-disable]                  disable generate yarn.lock file
 
     [--src-less-disable]                   disable create of the src-less folders
     [--src-less-glob={value}]              glob pattern to include files with the src-less folder
+    [--src-less-sub-dev-deps]                  include sub workspaces dev dependencies
 
     [--src-less-prod-disable]              disable create the prod src-less folder
     [--src-less-prod-glob={value}]         glob pattern to include files with the src-less-prod folder
