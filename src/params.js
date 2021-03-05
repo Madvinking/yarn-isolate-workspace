@@ -20,6 +20,8 @@ const yarnrcDisable = getParam('--yarnrc-disable');
 const yarnrcGenerate = getParam('--yarnrc-generate');
 const yarnLockDisable = getParam('--yarn-lock-disable');
 const srcLessDisable = getParam('--src-less-disable');
+const srcLessSubDev = getParam('--src-less-sub-dev-deps');
+
 const srcLessGlob = getParam('--src-less-glob', true);
 const srcLessProdDisable = getParam('--src-less-prod-disable');
 const srcLessProdGlob = getParam('--src-less-prod-glob', true);
@@ -133,16 +135,17 @@ function printHelp() {
 
     // yarn files
     [--yarnrc-disable]                     disable copy or generate .yarnrc file
-    [--yarnrc-generate]                    generate yarnrc with workspaces flag enable
+    [--yarnrc-generate]                    generate yarnrc (instead of copy the existing one)
     [--yarn-lock-disable]                  disable generate yarn.lock file
 
     // src-less folder
     [--src-less-disable]                   disable create of the src-less folders
-    [--src-less-glob={value}]             extra files to copy to src-less folder
+    [--src-less-glob={value}]              extra files to copy to src-less folder
+    [--src-less-sub-dev-deps]                  include sub workspaces dev dependecies (if sub workspaces need to be build as well)
 
     // src-less-prod folder
     [--src-less-prod-disable]              disable create the prod src-less folder
-    [--src-less-prod-glob={value}]        extra files to copy to src-less folder
+    [--src-less-prod-glob={value}]         extra files to copy to src-less folder
 
     // main workspace
     [--json-file-disable]                  disable create json file
@@ -150,10 +153,10 @@ function printHelp() {
     [--output-folder]                      folder to create all generated files (default to _isolated_)
 
     // files
-    [--src-files-enable]                   copy all src file of main worksapce
-    [--src-files-exclude-glob={value}]    copy src file of main workspace by glob
-    [--src-files-include-glob={value}]    copy src file of main workspace by glob
-    [--workspaces-exclude-glob={value}]   exclude glob when copy workspaces (default: node_modules and selected output-folder)
+    [--src-files-enable]                   copy all src file of main worksapce to isolate folder
+    [--src-files-exclude-glob={value}]     copy src file of main workspace by glob
+    [--src-files-include-glob={value}]     copy src file of main workspace by glob
+    [--workspaces-exclude-glob={value}]    exclude glob when copy workspaces (default: node_modules and selected output-folder)
 
     // workspaces folder configuration
     [--max-depth]                          by default we search recursively project-root 5 folder
@@ -178,6 +181,7 @@ module.exports = {
   srcLessGlob,
   srcLessProdDisable,
   srcLessProdGlob,
+  srcLessSubDev,
   jsonFileDisable,
   jsonFileProdDisable,
   outputFolder,
