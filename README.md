@@ -106,7 +106,7 @@ their dev-dependencies and test files.
 
     [--src-less-disable]                   disable create of the src-less folders
     [--src-less-glob={value}]              glob pattern to include files with the src-less folder
-    [--src-less-sub-dev-deps]                  include sub workspaces dev dependencies
+    [--src-less-sub-dev-deps]              include sub workspaces dev dependencies
 
     [--src-less-prod-disable]              disable create the prod src-less folder
     [--src-less-prod-glob={value}]         glob pattern to include files with the src-less-prod folder
@@ -114,6 +114,7 @@ their dev-dependencies and test files.
     [--json-file-disable]                  disable create json file
     [--json-file-prod-disable]             disable create json prod json file
     [--output-folder]                      folder to create all generated files (default to _isolated_)
+    [--include-root-deps]                  include root workspaces package.json dependencies and dev dependencies
 
     [--src-files-enable]                   copy all src file of main workspace to the isolated folder
     [--src-files-exclude-glob={value}]     glob pattern to exclude files from the main workspace copied files

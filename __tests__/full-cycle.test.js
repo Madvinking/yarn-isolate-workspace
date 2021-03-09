@@ -279,7 +279,7 @@ describe('full cycle of isolated', () => {
     expect(folder).toEqual(['.yarnrc', 'package-prod.json', 'package.json', 'src.js', 'workspaces', 'workspaces-src-less-prod']);
   });
 
-  test('--src-less-sub-dev-deps: should inclue sub worksapced dev deps', async () => {
+  test('--src-less-sub-dev-deps: should include sub worksapced dev deps', async () => {
     runWithParam('--src-less-sub-dev-deps');
 
     const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
@@ -307,5 +307,56 @@ describe('full cycle of isolated', () => {
     });
 
     expect(fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString().includes('in-w1-dev-dep-1@1')).toEqual(true);
+  });
+
+  test('--include-root-deps: should include root package json dev and prod deps', async () => {
+    runWithParam('--include-root-deps');
+
+    const folder = fse.readdirSync(`${workspaceFolder}/_isolated_/`);
+
+    expect(folder).toEqual([
+      '.yarnrc',
+      'package-prod.json',
+      'package.json',
+      'workspaces',
+      'workspaces-src-less',
+      'workspaces-src-less-prod',
+      'yarn.lock',
+    ]);
+
+    const mainPacakgeJson = JSON.parse(fse.readFileSync(`${workspaceFolder}/_isolated_/package.json`).toString());
+
+    expect(mainPacakgeJson.dependencies).toEqual({
+      'in-root-dep-1': '1',
+      'in-root-dep-2': '2',
+      'root-dep': '1',
+      'workspace-1': '1',
+      'workspace-2': '1',
+    });
+
+    expect(mainPacakgeJson.devDependencies).toEqual({
+      'in-root-dev-dep-1': '1',
+      'in-root-dev-dep-2': '1',
+      'root-dev-dep': '1',
+      'workspace-11': '1',
+      'workspace-12': '1',
+    });
+
+    const pacakgeJsonProd = JSON.parse(fse.readFileSync(`${workspaceFolder}/_isolated_/package-prod.json`).toString());
+
+    expect(pacakgeJsonProd.dependencies).toEqual({
+      'in-root-dep-1': '1',
+      'in-root-dep-2': '2',
+      'root-dep': '1',
+      'workspace-1': '1',
+      'workspace-2': '1',
+    });
+
+    expect(pacakgeJsonProd.devDependencies).toEqual({});
+
+    const yarnLock = fse.readFileSync(`${workspaceFolder}/_isolated_/yarn.lock`).toString();
+
+    expect(yarnLock.includes('root-dep')).toEqual(true);
+    expect(yarnLock.includes('root-dev-dep')).toEqual(true);
   });
 });

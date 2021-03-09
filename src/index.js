@@ -7,6 +7,7 @@ const lockfile = require('@yarnpkg/lockfile');
 const glob = require('glob');
 const {
   rootDir,
+  rootPacakgeJson,
   outputFolder,
   workspaceData,
   prodWorkspaces,
@@ -27,6 +28,7 @@ const {
   srcFilesIncludeGlob,
   srcFilesExcludeGlob,
   workspacesExcludeGlob,
+  includeRootDeps,
   isolateFolder,
   workspacesFolder,
   srcLessFolder,
@@ -151,6 +153,20 @@ function createMainJsonFile() {
 
   if (workspaceData.pkgJson.devDependencies) {
     currentDevDependencies = JSON.parse(JSON.stringify(workspaceData.pkgJson.devDependencies));
+
+    if (includeRootDeps) {
+      currentDevDependencies = {
+        ...rootPacakgeJson.devDependencies,
+        ...currentDevDependencies,
+      };
+    }
+  }
+
+  if (includeRootDeps) {
+    workspaceData.pkgJson.dependencies = {
+      ...rootPacakgeJson.dependencies,
+      ...workspaceData.pkgJson.dependencies,
+    };
   }
 
   if (!jsonFileProdDisable) {

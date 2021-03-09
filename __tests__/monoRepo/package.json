@@ -5,5 +5,12 @@
 
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "root-dep": "1"
+  },
+  "devDependencies": {
+    "root-dev-dep": "1"
+  }
+
 }
