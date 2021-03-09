@@ -21,7 +21,7 @@ const yarnrcGenerate = getParam('--yarnrc-generate');
 const yarnLockDisable = getParam('--yarn-lock-disable');
 const srcLessDisable = getParam('--src-less-disable');
 const srcLessSubDev = getParam('--src-less-sub-dev-deps');
-
+const includeRootDeps = getParam('--include-root-deps');
 const srcLessGlob = getParam('--src-less-glob', true);
 const srcLessProdDisable = getParam('--src-less-prod-disable');
 const srcLessProdGlob = getParam('--src-less-prod-glob', true);
@@ -54,6 +54,8 @@ const getWorkspacesRoot = dir => {
 };
 
 const rootDir = getWorkspacesRoot(projectRoot);
+
+const rootPacakgeJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
 
 const projectWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
 
@@ -141,7 +143,7 @@ function printHelp() {
     // src-less folder
     [--src-less-disable]                   disable create of the src-less folders
     [--src-less-glob={value}]              extra files to copy to src-less folder
-    [--src-less-sub-dev-deps]                  include sub workspaces dev dependecies (if sub workspaces need to be build as well)
+    [--src-less-sub-dev-deps]              include sub workspaces dev dependecies (if sub workspaces need to be build as well)
 
     // src-less-prod folder
     [--src-less-prod-disable]              disable create the prod src-less folder
@@ -151,6 +153,7 @@ function printHelp() {
     [--json-file-disable]                  disable create json file
     [--json-file-prod-disable]             disable create json prod json file (withtout dev-dependencies)
     [--output-folder]                      folder to create all generated files (default to _isolated_)
+    [--include-root-deps]                  include root workspaces package.json dependencies and dev dependencies
 
     // files
     [--src-files-enable]                   copy all src file of main worksapce to isolate folder
@@ -168,6 +171,7 @@ function printHelp() {
 
 module.exports = {
   rootDir,
+  rootPacakgeJson,
   workspaceName,
   workspaceData,
   prodWorkspaces,
@@ -194,4 +198,5 @@ module.exports = {
   workspacesFolder,
   srcLessFolder,
   srcLessFolderProd,
+  includeRootDeps,
 };
