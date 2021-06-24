@@ -3,8 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 
-// let workspaceFolder = path.join(__dirname, 'lock/root-workspace');
-
 describe('create lock file', () => {
   test('create yarn lock with deep dev', () => {
     const isolateFolder = path.join(__dirname, 'test1/_isolated_');
