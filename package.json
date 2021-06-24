@@ -31,7 +31,7 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules",
-    "test": "jest --config jest.config.js --silent=false full-cycle",
+    "test": "jest --config jest.config.js --silent=false full-cycle lock",
     "lint": "eslint --quiet --color ."
   },
   "dependencies": {

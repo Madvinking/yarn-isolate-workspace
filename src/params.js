@@ -57,7 +57,9 @@ const rootDir = getWorkspacesRoot(projectRoot);
 
 const rootPacakgeJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
 
-const projectWorkspaces = JSON.parse(execSync('yarn workspaces --silent info', { cwd: rootDir }).toString());
+const projectWorkspaces = JSON.parse(
+  execSync('yarn workspaces --silent info', { cwd: rootDir, encoding: 'utf8' }).toString().replace(`[2K[1G`, ''),
+);
 
 const workspaceName = (function getWorkspaceName() {
   const [targetWorkspaceName] = cliParams;
