@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
 const readDirSync = require('fs-readdir-recursive');
-const lockfile = require('@yarnpkg/lockfile');
 const glob = require('glob');
 const {
   rootDir,
@@ -34,6 +33,7 @@ const {
   srcLessFolder,
   srcLessFolderProd,
 } = require('./params');
+const { createYarnLock } = require('./create-yarn-lock');
 
 const ignorePattterns = ['.', 'package.json', 'node_modules', outputFolder];
 
@@ -195,46 +195,6 @@ function createYarnRc() {
   fs.writeFileSync(yarnrcFileDest, 'workspaces-experimental true');
 }
 
-function createYarnLock() {
-  if (yarnLockDisable) return;
-  const yarnLockPath = path.join(rootDir, 'yarn.lock');
-  if (!fs.existsSync(yarnLockPath)) {
-    console.warn('no yarn.lock file on project root');
-    return;
-  }
-
-  let { object: oldFile } = lockfile.parse(fs.readFileSync(yarnLockPath, 'utf8'));
-
-  const dependenciesList = (function getDependencies() {
-    const list = [];
-    const recursive = (dependencies = {}) => {
-      Object.entries(dependencies).forEach(([name, version]) => {
-        const depName = `${name}@${version}`;
-        if (!projectWorkspaces[name] && !list.includes(depName)) {
-          list.push(depName);
-        } else if (projectWorkspaces[name]) {
-          if (srcLessSubDev) {
-            recursive({ ...projectWorkspaces[name].pkgJson.dependencies, ...projectWorkspaces[name].pkgJson.devDependencies });
-          } else {
-            recursive(projectWorkspaces[name].pkgJson.dependencies);
-          }
-        }
-      });
-    };
-    recursive({ ...workspaceData.pkgJson.dependencies, ...workspaceData.pkgJson.devDependencies });
-    return list;
-  })();
-
-  const recuireDeps = Object.keys(oldFile).filter(name => dependenciesList.includes(name));
-
-  let newFile = recuireDeps.reduce((acc, key) => {
-    acc[key] = oldFile[key];
-    return acc;
-  }, {});
-
-  fs.writeFileSync(path.join(isolateFolder, 'yarn.lock'), lockfile.stringify(newFile));
-}
-
 async function start() {
   createDestinationFolders();
   resolveWorkspacesNewLocation();
@@ -242,7 +202,7 @@ async function start() {
   copySrcLessProdToNewLocation();
   createMainJsonFile();
   createYarnRc();
-  createYarnLock();
+  createYarnLock({ yarnLockDisable, rootDir, projectWorkspaces, srcLessSubDev, workspaceData, isolateFolder });
 }
 
 start();
